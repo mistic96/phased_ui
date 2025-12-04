@@ -1,12 +1,11 @@
 /**
- * Dropzone Component
- * File upload area with "absorption" animation
+ * Dropzone Component - Modern Design
+ * A portal waiting to receive files with ambient motion
  *
  * States:
- * - idle: Waiting for files, subtle pulse
- * - dragover: Active drag, expanded with glow
- * - absorbing: Files being "pulled in" to the system
- * - processing: Files absorbed, processing started
+ * - idle: Floating particles, rotating gradient border, morphing icon
+ * - dragover: Intensified glow, particles accelerate toward center
+ * - absorbing: Files pulled into vortex
  */
 
 import { useState, useCallback, useRef } from 'react';
@@ -52,7 +51,6 @@ export function Dropzone({
   const handleDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    // Only set to false if leaving the dropzone entirely
     if (!dropzoneRef.current?.contains(e.relatedTarget as Node)) {
       setIsDragOver(false);
     }
@@ -71,12 +69,10 @@ export function Dropzone({
     const files = Array.from(e.dataTransfer.files).slice(0, maxFiles);
     if (files.length === 0) return;
 
-    // Get drop position relative to dropzone
     const rect = dropzoneRef.current?.getBoundingClientRect();
     const dropX = rect ? e.clientX - rect.left : 100;
     const dropY = rect ? e.clientY - rect.top : 100;
 
-    // Create file entries with scattered positions around drop point
     const newFiles: DroppedFile[] = files.map((file, i) => ({
       id: `${Date.now()}-${i}`,
       name: file.name,
@@ -92,17 +88,14 @@ export function Dropzone({
     setDroppedFiles(newFiles);
     setIsAbsorbing(true);
 
-    // Start absorption sequence
     setTimeout(() => {
       setDroppedFiles(prev => prev.map(f => ({ ...f, status: 'absorbing' as const })));
     }, 100);
 
-    // Complete absorption
     setTimeout(() => {
       setDroppedFiles(prev => prev.map(f => ({ ...f, status: 'absorbed' as const })));
     }, 600);
 
-    // Clear and callback
     setTimeout(() => {
       setDroppedFiles([]);
       setIsAbsorbing(false);
@@ -110,12 +103,6 @@ export function Dropzone({
       onAbsorptionComplete?.();
     }, 1000);
   }, [maxFiles, onFilesAccepted, onAbsorptionComplete]);
-
-  const getStateClasses = () => {
-    if (isAbsorbing) return 'dropzone-absorbing';
-    if (isDragOver) return 'dropzone-active';
-    return 'dropzone-idle';
-  };
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
@@ -128,10 +115,11 @@ export function Dropzone({
       ref={dropzoneRef}
       className={`
         ${phaseClassName}
-        relative overflow-hidden
-        rounded-2xl border-2 border-dashed
-        transition-all duration-300 ease-out
-        ${getStateClasses()}
+        dropzone-modern
+        relative overflow-hidden rounded-2xl
+        transition-all duration-500 ease-out
+        ${isDragOver ? 'dropzone-hover' : ''}
+        ${isAbsorbing ? 'dropzone-absorbing' : ''}
         ${className}
       `}
       onDragEnter={handleDragEnter}
@@ -139,79 +127,95 @@ export function Dropzone({
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-white/[0.05]" />
+      {/* Animated gradient border */}
+      <div className="dropzone-border-gradient" />
 
-      {/* Absorption vortex effect */}
-      {isAbsorbing && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="absorption-vortex" />
+      {/* Inner glass container */}
+      <div className="dropzone-inner">
+        {/* Ambient floating particles */}
+        <div className="dropzone-particles">
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={i}
+              className="dropzone-particle-ambient"
+              style={{
+                '--index': i,
+                '--delay': `${i * 0.8}s`,
+              } as React.CSSProperties}
+            />
+          ))}
         </div>
-      )}
 
-      {/* Content */}
-      <div className="relative z-10 flex flex-col items-center justify-center py-12 px-6">
-        {/* Icon */}
+        {/* Center content */}
         <div className={`
-          mb-4 transition-transform duration-300
-          ${isDragOver ? 'scale-110' : 'scale-100'}
-          ${isAbsorbing ? 'scale-90 opacity-50' : ''}
+          relative z-10 flex flex-col items-center justify-center py-16 px-8
+          transition-all duration-300
+          ${isAbsorbing ? 'opacity-0 scale-90' : ''}
         `}>
-          <svg
-            width="64"
-            height="64"
-            viewBox="0 0 64 64"
-            fill="none"
-            className={isDragOver ? 'animate-bounce-subtle' : ''}
-          >
-            <defs>
-              <linearGradient id="dropzone-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#6366f1" />
-                <stop offset="100%" stopColor="#8b5cf6" />
-              </linearGradient>
-            </defs>
-            {/* Cloud/upload icon */}
-            <path
-              d="M32 44V28M32 28L24 36M32 28L40 36"
-              stroke="url(#dropzone-gradient)"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className={isAbsorbing ? 'opacity-30' : ''}
-            />
-            <path
-              d="M44 40C48.4183 40 52 36.4183 52 32C52 27.5817 48.4183 24 44 24C43.7373 24 43.4772 24.0122 43.2202 24.0361C42.0078 19.4404 37.4183 16 32 16C25.3726 16 20 21.3726 20 28C20 28.3367 20.0118 28.6705 20.0351 29.0012C16.0467 29.1525 12 32.2895 12 37C12 41.9706 16.0294 46 21 46H43C43.3367 46 43.6705 45.9882 44 45.9649"
-              stroke="url(#dropzone-gradient)"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              className={isAbsorbing ? 'opacity-30' : ''}
-            />
-          </svg>
+          {/* Morphing shape icon - reuses the processing animation */}
+          <div className={`
+            relative w-16 h-16 mb-6
+            transition-transform duration-300
+            ${isDragOver ? 'scale-125' : 'scale-100'}
+          `}>
+            <svg width="64" height="64" viewBox="0 0 64 64" className="dropzone-icon">
+              <defs>
+                <linearGradient id="dropzone-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#6366f1" />
+                  <stop offset="50%" stopColor="#8b5cf6" />
+                  <stop offset="100%" stopColor="#06b6d4" />
+                </linearGradient>
+                <filter id="dropzone-glow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="4" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+
+              {/* Circle */}
+              <circle
+                cx="32"
+                cy="32"
+                r="20"
+                fill="url(#dropzone-grad)"
+                filter="url(#dropzone-glow)"
+                className="animate-morph-shape-1"
+              />
+
+              {/* Diamond */}
+              <polygon
+                points="32,12 52,32 32,52 12,32"
+                fill="url(#dropzone-grad)"
+                filter="url(#dropzone-glow)"
+                className="animate-morph-shape-2"
+              />
+
+              {/* Hexagon */}
+              <polygon
+                points="32,12 49.3,22 49.3,42 32,52 14.7,42 14.7,22"
+                fill="url(#dropzone-grad)"
+                filter="url(#dropzone-glow)"
+                className="animate-morph-shape-3"
+              />
+            </svg>
+          </div>
+
+          {/* Text */}
+          <p className={`
+            text-base font-medium tracking-wide
+            transition-all duration-300
+            ${isDragOver ? 'text-white' : 'text-white/60'}
+          `}>
+            {isDragOver ? 'Release to absorb' : 'Drop files to begin'}
+          </p>
         </div>
 
-        {/* Text */}
-        <div className="text-center">
-          <p className={`
-            text-lg font-medium transition-all duration-300
-            ${isDragOver ? 'text-indigo-300' : 'text-white/80'}
-            ${isAbsorbing ? 'opacity-0' : ''}
-          `}>
-            {isDragOver ? 'Release to upload' : 'Drop files here'}
-          </p>
-          <p className={`
-            text-sm text-white/40 mt-1 transition-opacity duration-300
-            ${isDragOver || isAbsorbing ? 'opacity-0' : ''}
-          `}>
-            or click to browse
-          </p>
-        </div>
-
-        {/* Absorbing status */}
+        {/* Absorption vortex */}
         {isAbsorbing && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <p className="text-indigo-300 font-medium animate-pulse">
-              Absorbing...
-            </p>
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="absorption-vortex" />
           </div>
         )}
       </div>
@@ -221,9 +225,8 @@ export function Dropzone({
         <div
           key={file.id}
           className={`
-            absolute pointer-events-none
+            absolute pointer-events-none z-20
             transition-all duration-500 ease-out
-            ${file.status === 'entering' ? 'opacity-100 scale-100' : ''}
             ${file.status === 'absorbing' ? 'file-absorbing' : ''}
             ${file.status === 'absorbed' ? 'opacity-0 scale-0' : ''}
           `}
@@ -235,7 +238,7 @@ export function Dropzone({
               : 'translate(-50%, -50%)',
           }}
         >
-          <div className="file-particle glass px-3 py-2 rounded-lg">
+          <div className="file-particle glass-elevated px-3 py-2 rounded-lg">
             <p className="text-xs font-medium text-white/90 truncate max-w-[120px]">
               {file.name}
             </p>
@@ -246,7 +249,7 @@ export function Dropzone({
         </div>
       ))}
 
-      {/* Particle effects during absorption */}
+      {/* Spiral particles during absorption */}
       {isAbsorbing && (
         <>
           {[...Array(8)].map((_, i) => (
