@@ -13,6 +13,7 @@ import {
   type StatusState,
 } from './phased';
 import { StatusIndicator, StatusDemo } from './components/StatusIndicator';
+import { Dropzone } from './components/Dropzone';
 
 // ============================================
 // PHASE DEMO CARD
@@ -339,6 +340,27 @@ function AppContent() {
         {/* Animation Showcase */}
         <section>
           <AnimationShowcase />
+        </section>
+
+        {/* Dropzone Demo */}
+        <section>
+          <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-6">
+            File Dropzone with Absorption
+          </h3>
+          <Dropzone
+            onFilesAccepted={(files) => {
+              console.log('Files accepted:', files);
+              handleStatusChange('processing');
+              setTimeout(() => handleStatusChange('success'), 2000);
+            }}
+            onAbsorptionComplete={() => {
+              console.log('Absorption complete');
+            }}
+            className="max-w-2xl"
+          />
+          <p className="text-xs text-white/40 mt-3 max-w-2xl">
+            Drag and drop files to see the absorption animation. Files are pulled toward the center with a vortex effect.
+          </p>
         </section>
 
         {/* Phase Demo Cards */}
