@@ -92,28 +92,44 @@ function ListeningShape({ size, color }: { size: number; color: string }) {
 function ThinkingShape({ size, color }: { size: number; color: string }) {
   const cx = size / 2;
   const cy = size / 2;
+  const dotRadius = size * 0.08;
+  const spacing = size * 0.18;
+
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
       <defs>
         <filter id="glow-thinking" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="4" result="coloredBlur" />
+          <feGaussianBlur stdDeviation="3" result="coloredBlur" />
           <feMerge>
             <feMergeNode in="coloredBlur" />
             <feMergeNode in="SourceGraphic" />
           </feMerge>
         </filter>
       </defs>
-      {/* Organic blob that morphs */}
-      <path
-        d={`M ${cx} ${cy - size * 0.35}
-            Q ${cx + size * 0.35} ${cy - size * 0.2} ${cx + size * 0.3} ${cy + size * 0.1}
-            Q ${cx + size * 0.25} ${cy + size * 0.4} ${cx} ${cy + size * 0.35}
-            Q ${cx - size * 0.25} ${cy + size * 0.4} ${cx - size * 0.3} ${cy + size * 0.1}
-            Q ${cx - size * 0.35} ${cy - size * 0.2} ${cx} ${cy - size * 0.35}
-            Z`}
+      {/* Animated dots: . | .. | ... */}
+      <circle
+        cx={cx - spacing}
+        cy={cy}
+        r={dotRadius}
         fill={color}
         filter="url(#glow-thinking)"
-        className="animate-thinking-morph"
+        className="animate-dot-1"
+      />
+      <circle
+        cx={cx}
+        cy={cy}
+        r={dotRadius}
+        fill={color}
+        filter="url(#glow-thinking)"
+        className="animate-dot-2"
+      />
+      <circle
+        cx={cx + spacing}
+        cy={cy}
+        r={dotRadius}
+        fill={color}
+        filter="url(#glow-thinking)"
+        className="animate-dot-3"
       />
     </svg>
   );
@@ -122,8 +138,16 @@ function ThinkingShape({ size, color }: { size: number; color: string }) {
 function ProcessingShape({ size, color }: { size: number; color: string }) {
   const cx = size / 2;
   const cy = size / 2;
-  const r = size * 0.32;
-  // Diamond/geometric shape
+  const r = size * 0.3;
+
+  // Generate hexagon points
+  const hexPoints = [];
+  for (let i = 0; i < 6; i++) {
+    const angle = (Math.PI / 3) * i - Math.PI / 2;
+    hexPoints.push(`${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`);
+  }
+
+  // 3-shape morphing: circle → diamond → hexagon
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
       <defs>
@@ -135,19 +159,32 @@ function ProcessingShape({ size, color }: { size: number; color: string }) {
           </feMerge>
         </filter>
       </defs>
-      <g className="animate-processing-rotate" style={{ transformOrigin: `${cx}px ${cy}px` }}>
-        {/* Outer diamond */}
-        <polygon
-          points={`${cx},${cy - r} ${cx + r},${cy} ${cx},${cy + r} ${cx - r},${cy}`}
-          fill={color}
-          filter="url(#glow-processing)"
-        />
-        {/* Inner facet */}
-        <polygon
-          points={`${cx},${cy - r * 0.5} ${cx + r * 0.5},${cy} ${cx},${cy + r * 0.5} ${cx - r * 0.5},${cy}`}
-          fill="rgba(255,255,255,0.2)"
-        />
-      </g>
+
+      {/* Shape 1: Circle */}
+      <circle
+        cx={cx}
+        cy={cy}
+        r={r}
+        fill={color}
+        filter="url(#glow-processing)"
+        className="animate-morph-shape-1"
+      />
+
+      {/* Shape 2: Diamond */}
+      <polygon
+        points={`${cx},${cy - r} ${cx + r},${cy} ${cx},${cy + r} ${cx - r},${cy}`}
+        fill={color}
+        filter="url(#glow-processing)"
+        className="animate-morph-shape-2"
+      />
+
+      {/* Shape 3: Hexagon */}
+      <polygon
+        points={hexPoints.join(' ')}
+        fill={color}
+        filter="url(#glow-processing)"
+        className="animate-morph-shape-3"
+      />
     </svg>
   );
 }

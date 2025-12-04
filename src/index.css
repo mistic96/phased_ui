@@ -205,39 +205,125 @@ body {
   }
 }
 
-/* THINKING - Organic blob morphing */
-.animate-thinking-morph {
-  animation: thinking-blob 4s ease-in-out infinite;
+/* THINKING - Animated dots: . | .. | ... */
+/* Each dot appears sequentially, creating a typing/thinking effect */
+.animate-dot-1 {
+  animation: dot-sequence-1 1.5s ease-in-out infinite;
   transform-origin: center;
 }
 
-@keyframes thinking-blob {
-  0%, 100% {
+.animate-dot-2 {
+  animation: dot-sequence-2 1.5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.animate-dot-3 {
+  animation: dot-sequence-3 1.5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* Dot 1: visible from 0-100% (always base) */
+@keyframes dot-sequence-1 {
+  0%, 10% {
+    opacity: 0.3;
+    transform: scale(0.6);
+  }
+  20%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Dot 2: appears at 33% */
+@keyframes dot-sequence-2 {
+  0%, 30% {
+    opacity: 0.2;
+    transform: scale(0.5);
+  }
+  40%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Dot 3: appears at 66%, then all reset */
+@keyframes dot-sequence-3 {
+  0%, 55% {
+    opacity: 0.2;
+    transform: scale(0.5);
+  }
+  65%, 85% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  95%, 100% {
+    opacity: 0.2;
+    transform: scale(0.5);
+  }
+}
+
+/* PROCESSING - 3-shape morphing: circle → diamond → hexagon */
+/* Each shape fades in and out in sequence */
+.animate-morph-shape-1 {
+  animation: morph-cycle-1 3s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.animate-morph-shape-2 {
+  animation: morph-cycle-2 3s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.animate-morph-shape-3 {
+  animation: morph-cycle-3 3s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* Circle: visible 0-33% */
+@keyframes morph-cycle-1 {
+  0%, 5% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  10%, 28% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  38%, 100% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+/* Diamond: visible 33-66% */
+@keyframes morph-cycle-2 {
+  0%, 28% {
+    opacity: 0;
+    transform: scale(0.8) rotate(-45deg);
+  }
+  38%, 62% {
+    opacity: 1;
     transform: scale(1) rotate(0deg);
-    d: path("M 32 10 Q 54 16 50 36 Q 46 54 32 50 Q 18 54 14 36 Q 10 16 32 10 Z");
   }
-  25% {
-    transform: scale(1.02) rotate(3deg);
-  }
-  50% {
-    transform: scale(0.98) rotate(-3deg);
-  }
-  75% {
-    transform: scale(1.01) rotate(2deg);
+  72%, 100% {
+    opacity: 0;
+    transform: scale(0.9) rotate(45deg);
   }
 }
 
-/* PROCESSING - Geometric diamond rotation */
-.animate-processing-rotate {
-  animation: processing-rotate-svg 3s linear infinite;
-}
-
-@keyframes processing-rotate-svg {
-  0% {
-    transform: rotate(0deg);
+/* Hexagon: visible 66-100% */
+@keyframes morph-cycle-3 {
+  0%, 62% {
+    opacity: 0;
+    transform: scale(0.8) rotate(-30deg);
+  }
+  72%, 95% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
   }
   100% {
-    transform: rotate(360deg);
+    opacity: 0;
+    transform: scale(0.9) rotate(30deg);
   }
 }
 
