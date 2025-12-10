@@ -1,12 +1,13 @@
 /**
  * Entity Selector Component
- * Multi-select with phase-aware surfacing
+ * Multi-select with phase-aware surfacing and virtualization
  *
  * Features:
  * - Search/filter entities
  * - Multi-select with animated chips
  * - Phase-aware: options surface based on relevance
  * - Keyboard navigation
+ * - Virtualized list for performance
  */
 
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
@@ -31,6 +32,10 @@ interface EntitySelectorProps {
   className?: string;
 }
 
+const ITEM_HEIGHT = 52; // Height of each option in pixels
+const VISIBLE_COUNT = 5; // Number of visible items
+const BUFFER_COUNT = 2; // Extra items to render above/below
+
 export function EntitySelector({
   entities,
   selectedIds = [],
@@ -43,6 +48,7 @@ export function EntitySelector({
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [focusedIndex, setFocusedIndex] = useState(-1);
+  const [scrollTop, setScrollTop] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const { className: phaseClassName } = usePhase({ initialPhase });
@@ -75,6 +81,16 @@ export function EntitySelector({
     return entities.filter((e) => selectedIds.includes(e.id));
   }, [entities, selectedIds]);
 
+  // Virtualization calculations
+  const totalHeight = sortedEntities.length * ITEM_HEIGHT;
+  const startIndex = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - BUFFER_COUNT);
+  const endIndex = Math.min(
+    sortedEntities.length,
+    Math.ceil((scrollTop + VISIBLE_COUNT * ITEM_HEIGHT) / ITEM_HEIGHT) + BUFFER_COUNT
+  );
+  const visibleEntities = sortedEntities.slice(startIndex, endIndex);
+  const offsetY = startIndex * ITEM_HEIGHT;
+
   const toggleSelection = useCallback(
     (id: string) => {
       const isSelected = selectedIds.includes(id);
@@ -101,6 +117,11 @@ export function EntitySelector({
     [selectedIds, onChange]
   );
 
+  // Handle scroll
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    setScrollTop(e.currentTarget.scrollTop);
+  }, []);
+
   // Keyboard navigation
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -115,11 +136,35 @@ export function EntitySelector({
       switch (e.key) {
         case 'ArrowDown':
           e.preventDefault();
-          setFocusedIndex((i) => Math.min(i + 1, sortedEntities.length - 1));
+          setFocusedIndex((i) => {
+            const next = Math.min(i + 1, sortedEntities.length - 1);
+            // Scroll to keep focused item visible
+            if (listRef.current) {
+              const itemTop = next * ITEM_HEIGHT;
+              const itemBottom = itemTop + ITEM_HEIGHT;
+              const viewTop = listRef.current.scrollTop;
+              const viewBottom = viewTop + VISIBLE_COUNT * ITEM_HEIGHT;
+              if (itemBottom > viewBottom) {
+                listRef.current.scrollTop = itemBottom - VISIBLE_COUNT * ITEM_HEIGHT;
+              }
+            }
+            return next;
+          });
           break;
         case 'ArrowUp':
           e.preventDefault();
-          setFocusedIndex((i) => Math.max(i - 1, 0));
+          setFocusedIndex((i) => {
+            const prev = Math.max(i - 1, 0);
+            // Scroll to keep focused item visible
+            if (listRef.current) {
+              const itemTop = prev * ITEM_HEIGHT;
+              const viewTop = listRef.current.scrollTop;
+              if (itemTop < viewTop) {
+                listRef.current.scrollTop = itemTop;
+              }
+            }
+            return prev;
+          });
           break;
         case 'Enter':
           e.preventDefault();
@@ -141,14 +186,6 @@ export function EntitySelector({
     [isOpen, focusedIndex, sortedEntities, toggleSelection, search, selectedIds, removeSelection]
   );
 
-  // Scroll focused item into view
-  useEffect(() => {
-    if (focusedIndex >= 0 && listRef.current) {
-      const item = listRef.current.children[focusedIndex] as HTMLElement;
-      item?.scrollIntoView({ block: 'nearest' });
-    }
-  }, [focusedIndex]);
-
   // Close on outside click
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -159,6 +196,14 @@ export function EntitySelector({
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
+
+  // Reset scroll when opening or search changes
+  useEffect(() => {
+    if (listRef.current) {
+      listRef.current.scrollTop = 0;
+      setScrollTop(0);
+    }
+  }, [isOpen, search]);
 
   return (
     <div className={`entity-selector ${phaseClassName} ${className}`}>
@@ -237,66 +282,76 @@ export function EntitySelector({
       {/* Dropdown list */}
       {isOpen && (
         <div className="entity-dropdown">
-          <div ref={listRef} className="entity-list">
+          <div
+            ref={listRef}
+            className="entity-list"
+            onScroll={handleScroll}
+          >
             {sortedEntities.length === 0 ? (
               <div className="entity-empty">
                 No entities found
               </div>
             ) : (
-              sortedEntities.map((entity, index) => {
-                const isSelected = selectedIds.includes(entity.id);
-                const isFocused = index === focusedIndex;
-                const relevanceClass = entity.relevance
-                  ? entity.relevance > 0.7 ? 'high-relevance'
-                  : entity.relevance > 0.4 ? 'medium-relevance'
-                  : 'low-relevance'
-                  : '';
+              <div style={{ height: totalHeight, position: 'relative' }}>
+                <div style={{ transform: `translateY(${offsetY}px)` }}>
+                  {visibleEntities.map((entity, i) => {
+                    const actualIndex = startIndex + i;
+                    const isSelected = selectedIds.includes(entity.id);
+                    const isFocused = actualIndex === focusedIndex;
+                    const relevanceClass = entity.relevance
+                      ? entity.relevance > 0.7 ? 'high-relevance'
+                      : entity.relevance > 0.4 ? 'medium-relevance'
+                      : 'low-relevance'
+                      : '';
 
-                return (
-                  <button
-                    key={entity.id}
-                    className={`entity-option ${isSelected ? 'selected' : ''} ${isFocused ? 'focused' : ''} ${relevanceClass}`}
-                    onClick={() => toggleSelection(entity.id)}
-                    onMouseEnter={() => setFocusedIndex(index)}
-                  >
-                    {/* Selection indicator */}
-                    <div className={`entity-option-check ${isSelected ? 'checked' : ''}`}>
-                      {isSelected && (
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                          <path
-                            d="M2.5 6L5 8.5L9.5 3.5"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      )}
-                    </div>
+                    return (
+                      <button
+                        key={entity.id}
+                        className={`entity-option ${isSelected ? 'selected' : ''} ${isFocused ? 'focused' : ''} ${relevanceClass}`}
+                        style={{ height: ITEM_HEIGHT }}
+                        onClick={() => toggleSelection(entity.id)}
+                        onMouseEnter={() => setFocusedIndex(actualIndex)}
+                      >
+                        {/* Selection indicator */}
+                        <div className={`entity-option-check ${isSelected ? 'checked' : ''}`}>
+                          {isSelected && (
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                              <path
+                                d="M2.5 6L5 8.5L9.5 3.5"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          )}
+                        </div>
 
-                    {/* Entity info */}
-                    <div className="entity-option-content">
-                      <span className="entity-option-name">{entity.name}</span>
-                      {entity.type && (
-                        <span className="entity-option-type">{entity.type}</span>
-                      )}
-                      {entity.description && (
-                        <span className="entity-option-desc">{entity.description}</span>
-                      )}
-                    </div>
+                        {/* Entity info */}
+                        <div className="entity-option-content">
+                          <span className="entity-option-name">{entity.name}</span>
+                          {entity.type && (
+                            <span className="entity-option-type">{entity.type}</span>
+                          )}
+                          {entity.description && (
+                            <span className="entity-option-desc">{entity.description}</span>
+                          )}
+                        </div>
 
-                    {/* Relevance indicator */}
-                    {entity.relevance !== undefined && (
-                      <div className="entity-option-relevance">
-                        <div
-                          className="entity-relevance-bar"
-                          style={{ width: `${entity.relevance * 100}%` }}
-                        />
-                      </div>
-                    )}
-                  </button>
-                );
-              })
+                        {/* Relevance indicator */}
+                        {entity.relevance !== undefined && (
+                          <div className="entity-option-relevance">
+                            <div
+                              className="entity-relevance-bar"
+                              style={{ width: `${entity.relevance * 100}%` }}
+                            />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             )}
           </div>
 
