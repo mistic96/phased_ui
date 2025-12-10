@@ -766,3 +766,327 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
+
+/* ============================================
+   ENTITY SELECTOR - Multi-select with phase awareness
+   ============================================ */
+
+.entity-selector {
+  position: relative;
+  width: 100%;
+}
+
+/* Selected chips container */
+.entity-selected-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+/* Individual chip */
+.entity-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.15));
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 20px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
+  animation: chip-appear 0.3s ease-out backwards;
+}
+
+@keyframes chip-appear {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(5px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.entity-chip-name {
+  font-weight: 500;
+}
+
+.entity-chip-type {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.entity-chip-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.entity-chip-remove:hover {
+  background: rgba(239, 68, 68, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Search container */
+.entity-search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.entity-search-icon {
+  position: absolute;
+  left: 14px;
+  color: rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+}
+
+.entity-search-input {
+  width: 100%;
+  padding: 14px 40px 14px 44px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.entity-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.entity-search-input:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.entity-search-clear {
+  position: absolute;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.entity-search-clear:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Dropdown */
+.entity-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 8px;
+  background: rgba(15, 15, 20, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  z-index: 50;
+  overflow: hidden;
+  animation: dropdown-appear 0.2s ease-out;
+}
+
+@keyframes dropdown-appear {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.entity-list {
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.entity-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.entity-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.entity-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.entity-empty {
+  padding: 24px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 14px;
+}
+
+/* Entity option */
+.entity-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  text-align: left;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.entity-option:hover,
+.entity-option.focused {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.entity-option.selected {
+  background: rgba(99, 102, 241, 0.15);
+}
+
+.entity-option.selected:hover,
+.entity-option.selected.focused {
+  background: rgba(99, 102, 241, 0.25);
+}
+
+/* Relevance-based surfacing */
+.entity-option.high-relevance {
+  order: -3;
+}
+
+.entity-option.medium-relevance {
+  order: -2;
+}
+
+.entity-option.low-relevance {
+  order: -1;
+  opacity: 0.7;
+}
+
+/* Checkbox */
+.entity-option-check {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.entity-option-check.checked {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-color: transparent;
+  color: white;
+  animation: check-pop 0.3s ease;
+}
+
+@keyframes check-pop {
+  0% {
+    transform: scale(0.8);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Entity content */
+.entity-option-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.entity-option-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.entity-option-type {
+  font-size: 11px;
+  color: rgba(99, 102, 241, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.entity-option-desc {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Relevance bar */
+.entity-option-relevance {
+  flex-shrink: 0;
+  width: 40px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.entity-relevance-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* Dropdown footer */
+.entity-dropdown-footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.entity-max {
+  color: rgba(255, 255, 255, 0.3);
+}
