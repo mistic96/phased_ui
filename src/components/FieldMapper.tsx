@@ -75,7 +75,7 @@ const FieldCard: React.FC<{
         }
         ${isHighlighted ? 'ring-2 ring-blue-400/50 border-blue-400/30' : ''}
         ${isDragTarget ? 'scale-105 bg-blue-500/20 border-blue-400/50' : ''}
-        ${side === 'source' ? 'cursor-grab active:cursor-grabbing' : ''}
+        ${side === 'source' ? 'cursor-grab active:cursor-grabbing mr-2' : 'ml-2'}
       `}
       onMouseDown={side === 'source' ? onDragStart : undefined}
       onMouseUp={side === 'target' ? onDrop : undefined}
@@ -137,7 +137,8 @@ const ConnectionLine: React.FC<{
   containerRef: React.RefObject<HTMLDivElement | null>;
   onRemove: () => void;
   isHovered: boolean;
-}> = ({ mapping, sourceRef, targetRef, containerRef, onRemove, isHovered }) => {
+  scrollVersion: number; // Triggers recalculation on scroll
+}> = ({ mapping, sourceRef, targetRef, containerRef, onRemove, isHovered, scrollVersion }) => {
   const [path, setPath] = useState('');
   const [midPoint, setMidPoint] = useState({ x: 0, y: 0 });
 
@@ -175,7 +176,7 @@ const ConnectionLine: React.FC<{
     updatePath();
     window.addEventListener('resize', updatePath);
     return () => window.removeEventListener('resize', updatePath);
-  }, [sourceRef, targetRef, containerRef]);
+  }, [sourceRef, targetRef, containerRef, scrollVersion]);
 
   if (!path) return null;
 
@@ -273,6 +274,8 @@ export const FieldMapper: React.FC<FieldMapperProps> = ({
   className = '',
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const sourceColumnRef = useRef<HTMLDivElement>(null);
+  const targetColumnRef = useRef<HTMLDivElement>(null);
   const sourceRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const targetRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
@@ -284,6 +287,12 @@ export const FieldMapper: React.FC<FieldMapperProps> = ({
   });
   const [hoveredMapping, setHoveredMapping] = useState<string | null>(null);
   const [hoveredTarget, setHoveredTarget] = useState<string | null>(null);
+  const [scrollVersion, setScrollVersion] = useState(0);
+
+  // Handle scroll to update connection lines
+  const handleScroll = useCallback(() => {
+    setScrollVersion(v => v + 1);
+  }, []);
 
   // Get connected field IDs
   const connectedSources = useMemo(
@@ -451,10 +460,14 @@ export const FieldMapper: React.FC<FieldMapperProps> = ({
       {/* Mapping container */}
       <div
         ref={containerRef}
-        className="field-mapper-container relative grid grid-cols-[1fr_auto_1fr] gap-8 p-4 bg-white/[0.02] rounded-xl border border-white/10"
+        className="field-mapper-container relative grid grid-cols-[1fr_auto_1fr] gap-4 p-4 bg-white/[0.02] rounded-xl border border-white/10"
       >
         {/* Source fields */}
-        <div className="field-column space-y-2">
+        <div
+          ref={sourceColumnRef}
+          className="field-column field-column-source space-y-2 pr-2"
+          onScroll={handleScroll}
+        >
           <div className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">
             Source Fields
           </div>
@@ -475,49 +488,43 @@ export const FieldMapper: React.FC<FieldMapperProps> = ({
           ))}
         </div>
 
-        {/* Connection area */}
-        <div className="connection-area relative w-32">
-          <svg className="absolute inset-0 w-full h-full overflow-visible pointer-events-none">
-            {/* Existing connections */}
-            {mappings.map(mapping => {
-              const sourceRef = { current: sourceRefs.current.get(mapping.sourceId) || null };
-              const targetRef = { current: targetRefs.current.get(mapping.targetId) || null };
-              const mappingKey = `${mapping.sourceId}-${mapping.targetId}`;
+        {/* Connection area - SVG spans full container */}
+        <svg
+          className="absolute inset-0 w-full h-full pointer-events-none"
+          style={{ zIndex: 10 }}
+        >
+          {/* Existing connections */}
+          {mappings.map(mapping => {
+            const sourceRef = { current: sourceRefs.current.get(mapping.sourceId) || null };
+            const targetRef = { current: targetRefs.current.get(mapping.targetId) || null };
+            const mappingKey = `${mapping.sourceId}-${mapping.targetId}`;
 
-              return (
-                <ConnectionLine
-                  key={mappingKey}
-                  mapping={mapping}
-                  sourceRef={sourceRef}
-                  targetRef={targetRef}
-                  containerRef={containerRef}
-                  onRemove={() => removeMapping(mapping.sourceId, mapping.targetId)}
-                  isHovered={hoveredMapping === mappingKey}
-                />
-              );
-            })}
-            {/* Drag line */}
-            {renderDragLine()}
-          </svg>
+            return (
+              <ConnectionLine
+                key={mappingKey}
+                mapping={mapping}
+                sourceRef={sourceRef}
+                targetRef={targetRef}
+                containerRef={containerRef}
+                onRemove={() => removeMapping(mapping.sourceId, mapping.targetId)}
+                isHovered={hoveredMapping === mappingKey}
+                scrollVersion={scrollVersion}
+              />
+            );
+          })}
+          {/* Drag line */}
+          {renderDragLine()}
+        </svg>
 
-          {/* Hover detection for connections */}
-          <div className="absolute inset-0">
-            {mappings.map(mapping => {
-              const mappingKey = `${mapping.sourceId}-${mapping.targetId}`;
-              return (
-                <div
-                  key={mappingKey}
-                  className="absolute inset-0"
-                  onMouseEnter={() => setHoveredMapping(mappingKey)}
-                  onMouseLeave={() => setHoveredMapping(null)}
-                />
-              );
-            })}
-          </div>
-        </div>
+        {/* Spacer for visual separation */}
+        <div className="w-24" />
 
         {/* Target fields */}
-        <div className="field-column space-y-2">
+        <div
+          ref={targetColumnRef}
+          className="field-column field-column-target space-y-2 pl-2"
+          onScroll={handleScroll}
+        >
           <div className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">
             Target Fields
           </div>
