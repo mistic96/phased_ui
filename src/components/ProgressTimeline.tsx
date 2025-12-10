@@ -217,7 +217,10 @@ export const ProgressTimeline: React.FC<ProgressTimelineProps> = ({
     setCompletedCount(count);
   }, [steps]);
 
-  const progressPercent = steps.length > 0 ? (completedCount / steps.length) * 100 : 0;
+  // Progress is 100% when the last step is reached (active or completed)
+  const lastStepReached = steps.length > 0 &&
+    (steps[steps.length - 1].status === 'active' || steps[steps.length - 1].status === 'completed');
+  const progressPercent = lastStepReached ? 100 : (steps.length > 0 ? (completedCount / steps.length) * 100 : 0);
   const isVertical = orientation === 'vertical';
 
   return (
@@ -246,20 +249,6 @@ export const ProgressTimeline: React.FC<ProgressTimelineProps> = ({
           }
         `}
       >
-        {/* Background connector line */}
-        {showConnectors && steps.length > 1 && (
-          <div
-            className={`
-              absolute
-              ${isVertical
-                ? 'left-5 top-5 bottom-5 w-0.5 -translate-x-1/2 bg-gradient-to-b'
-                : 'top-5 left-5 right-5 h-0.5 -translate-y-1/2 bg-gradient-to-r'
-              }
-              from-white/10 via-white/20 to-white/10
-            `}
-          />
-        )}
-
         {steps.map((step, index) => (
           <StepNode
             key={step.id}
