@@ -221,6 +221,7 @@ export const ProgressTimeline: React.FC<ProgressTimelineProps> = ({
   const lastStepReached = steps.length > 0 &&
     (steps[steps.length - 1].status === 'active' || steps[steps.length - 1].status === 'completed');
   const progressPercent = lastStepReached ? 100 : (steps.length > 0 ? (completedCount / steps.length) * 100 : 0);
+  const displayedCount = lastStepReached ? steps.length : completedCount;
   const isVertical = orientation === 'vertical';
 
   return (
@@ -229,7 +230,7 @@ export const ProgressTimeline: React.FC<ProgressTimelineProps> = ({
       <div className="timeline-progress mb-4">
         <div className="flex items-center justify-between text-xs text-white/50 mb-1">
           <span>Progress</span>
-          <span>{completedCount} of {steps.length} steps</span>
+          <span>{displayedCount} of {steps.length} steps</span>
         </div>
         <div className="h-1 bg-white/10 rounded-full overflow-hidden">
           <div
