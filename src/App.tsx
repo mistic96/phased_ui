@@ -16,6 +16,26 @@ import { StatusIndicator, StatusDemo } from './components/StatusIndicator';
 import { Dropzone } from './components/Dropzone';
 import { EntitySelector } from './components/EntitySelector';
 import { ProgressTimeline, createWorkflowSteps, type TimelineStep } from './components/ProgressTimeline';
+import { FieldMapper, type FieldMapping, type Field } from './components/FieldMapper';
+
+// Sample fields for Field Mapper demo
+const SOURCE_FIELDS: Field[] = [
+  { id: 's1', name: 'customer_name', type: 'string', description: 'Full customer name', sample: '"John Doe"' },
+  { id: 's2', name: 'email_address', type: 'string', description: 'Contact email', sample: '"john@example.com"' },
+  { id: 's3', name: 'purchase_date', type: 'date', description: 'Date of purchase', sample: '"2024-01-15"' },
+  { id: 's4', name: 'total_amount', type: 'number', description: 'Order total', sample: '299.99' },
+  { id: 's5', name: 'is_active', type: 'boolean', description: 'Account status', sample: 'true' },
+  { id: 's6', name: 'tags', type: 'array', description: 'Customer tags', sample: '["vip", "retail"]' },
+];
+
+const TARGET_FIELDS: Field[] = [
+  { id: 't1', name: 'full_name', type: 'string', description: 'Customer full name', required: true },
+  { id: 't2', name: 'email', type: 'string', description: 'Email address', required: true },
+  { id: 't3', name: 'order_date', type: 'date', description: 'Order timestamp', required: true },
+  { id: 't4', name: 'amount', type: 'number', description: 'Total amount' },
+  { id: 't5', name: 'status', type: 'boolean', description: 'Active status' },
+  { id: 't6', name: 'labels', type: 'array', description: 'Category labels' },
+];
 
 // Sample entities for demo
 const DEMO_ENTITIES = [
@@ -337,6 +357,22 @@ function AppContent() {
     ));
   }, []);
 
+  const [fieldMappings, setFieldMappings] = useState<FieldMapping[]>([
+    { sourceId: 's1', targetId: 't1' }, // Pre-map one for demo
+  ]);
+
+  const handleAutoMap = useCallback(() => {
+    // Simulate auto-mapping with confidence scores
+    setFieldMappings([
+      { sourceId: 's1', targetId: 't1', confidence: 0.95, isAutoSuggested: true },
+      { sourceId: 's2', targetId: 't2', confidence: 0.98, isAutoSuggested: true },
+      { sourceId: 's3', targetId: 't3', confidence: 0.87, isAutoSuggested: true },
+      { sourceId: 's4', targetId: 't4', confidence: 0.92, isAutoSuggested: true },
+      { sourceId: 's5', targetId: 't5', confidence: 0.78, isAutoSuggested: true },
+      { sourceId: 's6', targetId: 't6', confidence: 0.85, isAutoSuggested: true },
+    ]);
+  }, []);
+
   const handleStatusChange = useCallback((status: SystemStatus) => {
     setStatusState({
       status,
@@ -461,6 +497,23 @@ function AppContent() {
           </div>
           <p className="text-xs text-white/40 mt-3 max-w-xl">
             Animated workflow visualization with phase-aware step indicators. Click "Advance Step" to see transitions.
+          </p>
+        </section>
+
+        {/* Field Mapper Demo */}
+        <section>
+          <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-6">
+            Field Mapper
+          </h3>
+          <FieldMapper
+            sourceFields={SOURCE_FIELDS}
+            targetFields={TARGET_FIELDS}
+            mappings={fieldMappings}
+            onMappingsChange={setFieldMappings}
+            onAutoMap={handleAutoMap}
+          />
+          <p className="text-xs text-white/40 mt-3">
+            Drag from source fields to target fields to create mappings. Click "Auto-Map" to see AI-suggested mappings with confidence scores.
           </p>
         </section>
 
