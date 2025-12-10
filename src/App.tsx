@@ -14,6 +14,19 @@ import {
 } from './phased';
 import { StatusIndicator, StatusDemo } from './components/StatusIndicator';
 import { Dropzone } from './components/Dropzone';
+import { EntitySelector } from './components/EntitySelector';
+
+// Sample entities for demo
+const DEMO_ENTITIES = [
+  { id: '1', name: 'Acme Corporation', type: 'Client', description: 'Enterprise software company', relevance: 0.95 },
+  { id: '2', name: 'TechStart Inc', type: 'Client', description: 'AI startup', relevance: 0.88 },
+  { id: '3', name: 'Global Finance', type: 'Client', description: 'Investment banking', relevance: 0.72 },
+  { id: '4', name: 'DataFlow Systems', type: 'Partner', description: 'Data integration platform', relevance: 0.65 },
+  { id: '5', name: 'CloudNine Services', type: 'Vendor', description: 'Cloud infrastructure', relevance: 0.58 },
+  { id: '6', name: 'Retail Plus', type: 'Client', description: 'E-commerce platform', relevance: 0.45 },
+  { id: '7', name: 'HealthTech Labs', type: 'Partner', description: 'Healthcare analytics', relevance: 0.38 },
+  { id: '8', name: 'SecureNet', type: 'Vendor', description: 'Security solutions', relevance: 0.25 },
+];
 
 // ============================================
 // PHASE DEMO CARD
@@ -360,6 +373,30 @@ function AppContent() {
           />
           <p className="text-xs text-white/40 mt-3 max-w-2xl">
             Drag and drop files to see the absorption animation. Files are pulled toward the center with a vortex effect.
+          </p>
+        </section>
+
+        {/* Entity Selector Demo */}
+        <section>
+          <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-6">
+            Entity Selector with Relevance Surfacing
+          </h3>
+          <EntitySelector
+            entities={DEMO_ENTITIES}
+            placeholder="Search clients, partners, vendors..."
+            maxSelections={5}
+            onChange={(ids) => {
+              console.log('Selected:', ids);
+              if (ids.length > 0) {
+                handleStatusChange('listening');
+              } else {
+                handleStatusChange('idle');
+              }
+            }}
+            className="max-w-xl"
+          />
+          <p className="text-xs text-white/40 mt-3 max-w-xl">
+            Entities sorted by relevance score. Higher relevance items surface first. Multi-select with animated chips.
           </p>
         </section>
 
