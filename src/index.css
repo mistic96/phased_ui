@@ -1092,3 +1092,169 @@ body {
 .entity-max {
   color: rgba(255, 255, 255, 0.3);
 }
+
+/* ============================================
+   PROGRESS TIMELINE - Step Visualization
+   ============================================ */
+
+.progress-timeline {
+  position: relative;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  backdrop-filter: blur(8px);
+}
+
+/* Progress bar styling */
+.timeline-progress {
+  position: relative;
+}
+
+.timeline-progress > div:last-child {
+  position: relative;
+  overflow: hidden;
+}
+
+.timeline-progress > div:last-child::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Timeline container */
+.timeline-container {
+  padding: 16px 8px;
+}
+
+/* Step node styling */
+.timeline-step {
+  flex: 1;
+  min-width: 80px;
+}
+
+.timeline-node {
+  position: relative;
+  backdrop-filter: blur(4px);
+}
+
+.timeline-node::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.timeline-node:hover::before {
+  opacity: 1;
+}
+
+/* Active step glow */
+.timeline-step .timeline-node[class*="bg-blue"] {
+  box-shadow:
+    0 0 20px rgba(59, 130, 246, 0.4),
+    0 0 40px rgba(59, 130, 246, 0.2),
+    inset 0 0 15px rgba(59, 130, 246, 0.1);
+}
+
+/* Completed step glow */
+.timeline-step .timeline-node[class*="bg-emerald"] {
+  box-shadow:
+    0 0 15px rgba(16, 185, 129, 0.3),
+    inset 0 0 10px rgba(16, 185, 129, 0.1);
+}
+
+/* Error step glow */
+.timeline-step .timeline-node[class*="bg-red"] {
+  box-shadow:
+    0 0 15px rgba(239, 68, 68, 0.4),
+    inset 0 0 10px rgba(239, 68, 68, 0.1);
+  animation: errorPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes errorPulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+  50% { box-shadow: 0 0 25px rgba(239, 68, 68, 0.6), 0 0 40px rgba(239, 68, 68, 0.2); }
+}
+
+/* Connector line styling */
+.timeline-connector,
+.timeline-connector-after {
+  transition: all 0.5s ease;
+}
+
+/* Active connector animation */
+.timeline-connector[class*="from-emerald"][class*="to-blue"] {
+  background-size: 200% 100%;
+  animation: flowingGradient 1.5s ease-in-out infinite;
+}
+
+@keyframes flowingGradient {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Label styling */
+.timeline-label {
+  max-width: 120px;
+}
+
+/* Vertical orientation adjustments */
+.timeline-container.flex-col .timeline-step {
+  min-height: 80px;
+}
+
+.timeline-container.flex-col .timeline-label {
+  max-width: none;
+}
+
+/* Metadata tooltip */
+.timeline-step [class*="animate-fadeIn"] {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .progress-timeline {
+    padding: 12px;
+  }
+
+  .timeline-container.flex-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+  }
+
+  .timeline-container.flex-row .timeline-step {
+    flex-direction: row;
+    min-width: auto;
+  }
+
+  .timeline-container.flex-row .timeline-label {
+    margin-left: 16px;
+    margin-top: 0;
+    text-align: left;
+  }
+
+  .timeline-container.flex-row .timeline-connector {
+    display: none;
+  }
+}

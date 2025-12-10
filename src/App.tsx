@@ -15,6 +15,7 @@ import {
 import { StatusIndicator, StatusDemo } from './components/StatusIndicator';
 import { Dropzone } from './components/Dropzone';
 import { EntitySelector } from './components/EntitySelector';
+import { ProgressTimeline, createWorkflowSteps, type TimelineStep } from './components/ProgressTimeline';
 
 // Sample entities for demo
 const DEMO_ENTITIES = [
@@ -309,6 +310,32 @@ function AppContent() {
     message: 'Ready',
   });
   const [selectedEntityIds, setSelectedEntityIds] = useState<string[]>([]);
+  const [currentStep, setCurrentStep] = useState(2);
+  const [workflowSteps, setWorkflowSteps] = useState<TimelineStep[]>(() =>
+    createWorkflowSteps(
+      ['Upload', 'Validate', 'Map Fields', 'Transform', 'Review', 'Complete'],
+      2 // Start at step 2 (Map Fields is active)
+    )
+  );
+
+  const advanceWorkflow = useCallback(() => {
+    setCurrentStep(prev => {
+      const next = Math.min(prev + 1, 5);
+      setWorkflowSteps(createWorkflowSteps(
+        ['Upload', 'Validate', 'Map Fields', 'Transform', 'Review', 'Complete'],
+        next
+      ));
+      return next;
+    });
+  }, []);
+
+  const resetWorkflow = useCallback(() => {
+    setCurrentStep(0);
+    setWorkflowSteps(createWorkflowSteps(
+      ['Upload', 'Validate', 'Map Fields', 'Transform', 'Review', 'Complete'],
+      0
+    ));
+  }, []);
 
   const handleStatusChange = useCallback((status: SystemStatus) => {
     setStatusState({
@@ -400,6 +427,40 @@ function AppContent() {
           />
           <p className="text-xs text-white/40 mt-3 max-w-xl">
             Entities sorted by relevance score. Higher relevance items surface first. Multi-select with animated chips.
+          </p>
+        </section>
+
+        {/* Progress Timeline Demo */}
+        <section>
+          <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-6">
+            Progress Timeline
+          </h3>
+          <ProgressTimeline
+            steps={workflowSteps}
+            orientation="horizontal"
+            animated={true}
+            onStepClick={(step, index) => {
+              console.log('Clicked step:', step.label, index);
+            }}
+            className="max-w-3xl"
+          />
+          <div className="flex gap-3 mt-4">
+            <button
+              onClick={advanceWorkflow}
+              disabled={currentStep >= 5}
+              className="px-4 py-2 text-sm font-medium rounded-lg bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            >
+              Advance Step
+            </button>
+            <button
+              onClick={resetWorkflow}
+              className="px-4 py-2 text-sm font-medium rounded-lg bg-white/5 text-white/60 border border-white/10 hover:bg-white/10 transition-all"
+            >
+              Reset
+            </button>
+          </div>
+          <p className="text-xs text-white/40 mt-3 max-w-xl">
+            Animated workflow visualization with phase-aware step indicators. Click "Advance Step" to see transitions.
           </p>
         </section>
 
