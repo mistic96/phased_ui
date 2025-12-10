@@ -18,6 +18,7 @@ import { EntitySelector } from './components/EntitySelector';
 import { ProgressTimeline, createWorkflowSteps, type TimelineStep } from './components/ProgressTimeline';
 import { FieldMapper, type FieldMapping, type Field } from './components/FieldMapper';
 import { ValidationGrid, type ValidationRule } from './components/ValidationGrid';
+import { ChatInterface, type ChatMessage } from './components/ChatInterface';
 
 // Sample validation rules for demo
 const DEMO_VALIDATION_RULES: ValidationRule[] = [
@@ -388,6 +389,58 @@ function AppContent() {
     ]);
   }, []);
 
+  // Chat state
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+    {
+      id: '1',
+      role: 'system',
+      content: 'Data transformation session started',
+      timestamp: new Date(Date.now() - 60000),
+    },
+    {
+      id: '2',
+      role: 'assistant',
+      content: 'Hello! I can help you transform and validate your data. What would you like to do?',
+      timestamp: new Date(Date.now() - 55000),
+      metadata: { confidence: 0.98, processingTime: 245 },
+    },
+  ]);
+  const [isChatTyping, setIsChatTyping] = useState(false);
+
+  const handleSendMessage = useCallback((content: string) => {
+    const userMessage: ChatMessage = {
+      id: `msg-${Date.now()}`,
+      role: 'user',
+      content,
+      timestamp: new Date(),
+      status: 'sent',
+    };
+    setChatMessages(prev => [...prev, userMessage]);
+
+    // Simulate AI response
+    setIsChatTyping(true);
+    setTimeout(() => {
+      const responses = [
+        "I'll analyze that for you. Based on the current data, I can see several patterns emerging.",
+        "Great question! Let me process that request and get back to you with the results.",
+        "I understand. I'm running the validation now and will update the status shortly.",
+        "Processing your request... The field mapping looks correct, but I'd suggest reviewing the date formats.",
+      ];
+      const assistantMessage: ChatMessage = {
+        id: `msg-${Date.now() + 1}`,
+        role: 'assistant',
+        content: responses[Math.floor(Math.random() * responses.length)],
+        timestamp: new Date(),
+        metadata: {
+          confidence: 0.85 + Math.random() * 0.14,
+          processingTime: 200 + Math.floor(Math.random() * 300),
+        },
+      };
+      setChatMessages(prev => [...prev, assistantMessage]);
+      setIsChatTyping(false);
+    }, 1500 + Math.random() * 1000);
+  }, []);
+
   const handleStatusChange = useCallback((status: SystemStatus) => {
     setStatusState({
       status,
@@ -545,6 +598,26 @@ function AppContent() {
             onRuleClick={(rule) => console.log('Rule clicked:', rule.name)}
             onRevalidate={() => console.log('Revalidate requested')}
           />
+        </section>
+
+        {/* Chat Interface Demo */}
+        <section>
+          <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-6">
+            Chat Interface
+          </h3>
+          <div className="max-w-2xl h-[500px]">
+            <ChatInterface
+              messages={chatMessages}
+              onSendMessage={handleSendMessage}
+              isTyping={isChatTyping}
+              placeholder="Ask about your data transformation..."
+              showTimestamps={true}
+              showMetadata={true}
+            />
+          </div>
+          <p className="text-xs text-white/40 mt-3 max-w-2xl">
+            Intent-first conversational interface. Type a message to see simulated AI responses with confidence scores and processing metadata.
+          </p>
         </section>
 
         {/* Phase Demo Cards */}
