@@ -15,6 +15,42 @@ import {
 import { StatusIndicator, StatusDemo } from './components/StatusIndicator';
 import { Dropzone } from './components/Dropzone';
 import { EntitySelector } from './components/EntitySelector';
+import { ProgressTimeline, createWorkflowSteps, type TimelineStep } from './components/ProgressTimeline';
+import { FieldMapper, type FieldMapping, type Field } from './components/FieldMapper';
+import { ValidationGrid, type ValidationRule } from './components/ValidationGrid';
+
+// Sample validation rules for demo
+const DEMO_VALIDATION_RULES: ValidationRule[] = [
+  { id: 'v1', name: 'Required Fields Present', category: 'Schema', status: 'pass', message: 'All required fields are present in the dataset' },
+  { id: 'v2', name: 'Email Format', category: 'Format', status: 'pass', message: 'All email addresses match expected format' },
+  { id: 'v3', name: 'Date Range Check', category: 'Business Rules', status: 'warn', message: '15 records have dates in the future', affectedRows: 15, severity: 'minor', details: 'Records with future dates:\n- Row 45: 2025-03-15\n- Row 128: 2025-06-22\n- Row 203: 2025-01-30\n... and 12 more' },
+  { id: 'v4', name: 'Duplicate Detection', category: 'Data Quality', status: 'fail', message: '3 duplicate customer records found', affectedRows: 3, severity: 'major', details: 'Duplicate entries detected:\n- customer_id: 1042 (appears 2x)\n- customer_id: 3891 (appears 3x)' },
+  { id: 'v5', name: 'Numeric Range', category: 'Business Rules', status: 'pass', message: 'All amounts within acceptable range' },
+  { id: 'v6', name: 'Foreign Key Integrity', category: 'Schema', status: 'pass', message: 'All foreign key references are valid' },
+  { id: 'v7', name: 'Null Value Check', category: 'Data Quality', status: 'warn', message: '8 optional fields contain null values', affectedRows: 8, severity: 'minor' },
+  { id: 'v8', name: 'Character Encoding', category: 'Format', status: 'pass', message: 'All text fields use valid UTF-8 encoding' },
+  { id: 'v9', name: 'PII Detection', category: 'Security', status: 'fail', message: 'Potential SSN patterns detected', affectedRows: 2, severity: 'critical', details: 'Warning: Possible PII detected in free-text fields.\nReview rows 892 and 1204 for Social Security Number patterns.' },
+  { id: 'v10', name: 'Business Logic', category: 'Business Rules', status: 'pending', message: 'Awaiting external validation service' },
+];
+
+// Sample fields for Field Mapper demo
+const SOURCE_FIELDS: Field[] = [
+  { id: 's1', name: 'customer_name', type: 'string', description: 'Full customer name', sample: '"John Doe"' },
+  { id: 's2', name: 'email_address', type: 'string', description: 'Contact email', sample: '"john@example.com"' },
+  { id: 's3', name: 'purchase_date', type: 'date', description: 'Date of purchase', sample: '"2024-01-15"' },
+  { id: 's4', name: 'total_amount', type: 'number', description: 'Order total', sample: '299.99' },
+  { id: 's5', name: 'is_active', type: 'boolean', description: 'Account status', sample: 'true' },
+  { id: 's6', name: 'tags', type: 'array', description: 'Customer tags', sample: '["vip", "retail"]' },
+];
+
+const TARGET_FIELDS: Field[] = [
+  { id: 't1', name: 'full_name', type: 'string', description: 'Customer full name', required: true },
+  { id: 't2', name: 'email', type: 'string', description: 'Email address', required: true },
+  { id: 't3', name: 'order_date', type: 'date', description: 'Order timestamp', required: true },
+  { id: 't4', name: 'amount', type: 'number', description: 'Total amount' },
+  { id: 't5', name: 'status', type: 'boolean', description: 'Active status' },
+  { id: 't6', name: 'labels', type: 'array', description: 'Category labels' },
+];
 
 // Sample entities for demo
 const DEMO_ENTITIES = [
@@ -309,6 +345,48 @@ function AppContent() {
     message: 'Ready',
   });
   const [selectedEntityIds, setSelectedEntityIds] = useState<string[]>([]);
+  const [currentStep, setCurrentStep] = useState(2);
+  const [workflowSteps, setWorkflowSteps] = useState<TimelineStep[]>(() =>
+    createWorkflowSteps(
+      ['Upload', 'Validate', 'Map Fields', 'Transform', 'Review', 'Complete'],
+      2 // Start at step 2 (Map Fields is active)
+    )
+  );
+
+  const advanceWorkflow = useCallback(() => {
+    setCurrentStep(prev => {
+      const next = Math.min(prev + 1, 5);
+      setWorkflowSteps(createWorkflowSteps(
+        ['Upload', 'Validate', 'Map Fields', 'Transform', 'Review', 'Complete'],
+        next
+      ));
+      return next;
+    });
+  }, []);
+
+  const resetWorkflow = useCallback(() => {
+    setCurrentStep(0);
+    setWorkflowSteps(createWorkflowSteps(
+      ['Upload', 'Validate', 'Map Fields', 'Transform', 'Review', 'Complete'],
+      0
+    ));
+  }, []);
+
+  const [fieldMappings, setFieldMappings] = useState<FieldMapping[]>([
+    { sourceId: 's1', targetId: 't1' }, // Pre-map one for demo
+  ]);
+
+  const handleAutoMap = useCallback(() => {
+    // Simulate auto-mapping with confidence scores
+    setFieldMappings([
+      { sourceId: 's1', targetId: 't1', confidence: 0.95, isAutoSuggested: true },
+      { sourceId: 's2', targetId: 't2', confidence: 0.98, isAutoSuggested: true },
+      { sourceId: 's3', targetId: 't3', confidence: 0.87, isAutoSuggested: true },
+      { sourceId: 's4', targetId: 't4', confidence: 0.92, isAutoSuggested: true },
+      { sourceId: 's5', targetId: 't5', confidence: 0.78, isAutoSuggested: true },
+      { sourceId: 's6', targetId: 't6', confidence: 0.85, isAutoSuggested: true },
+    ]);
+  }, []);
 
   const handleStatusChange = useCallback((status: SystemStatus) => {
     setStatusState({
@@ -401,6 +479,72 @@ function AppContent() {
           <p className="text-xs text-white/40 mt-3 max-w-xl">
             Entities sorted by relevance score. Higher relevance items surface first. Multi-select with animated chips.
           </p>
+        </section>
+
+        {/* Progress Timeline Demo */}
+        <section>
+          <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-6">
+            Progress Timeline
+          </h3>
+          <ProgressTimeline
+            steps={workflowSteps}
+            orientation="horizontal"
+            animated={true}
+            onStepClick={(step, index) => {
+              console.log('Clicked step:', step.label, index);
+            }}
+            className="max-w-3xl"
+          />
+          <div className="flex gap-3 mt-4">
+            <button
+              onClick={advanceWorkflow}
+              disabled={currentStep >= 5}
+              className="px-4 py-2 text-sm font-medium rounded-lg bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            >
+              Advance Step
+            </button>
+            <button
+              onClick={resetWorkflow}
+              className="px-4 py-2 text-sm font-medium rounded-lg bg-white/5 text-white/60 border border-white/10 hover:bg-white/10 transition-all"
+            >
+              Reset
+            </button>
+          </div>
+          <p className="text-xs text-white/40 mt-3 max-w-xl">
+            Animated workflow visualization with phase-aware step indicators. Click "Advance Step" to see transitions.
+          </p>
+        </section>
+
+        {/* Field Mapper Demo */}
+        <section>
+          <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-6">
+            Field Mapper
+          </h3>
+          <FieldMapper
+            sourceFields={SOURCE_FIELDS}
+            targetFields={TARGET_FIELDS}
+            mappings={fieldMappings}
+            onMappingsChange={setFieldMappings}
+            onAutoMap={handleAutoMap}
+          />
+          <p className="text-xs text-white/40 mt-3">
+            Drag from source fields to target fields to create mappings. Click "Auto-Map" to see AI-suggested mappings with confidence scores.
+          </p>
+        </section>
+
+        {/* Validation Grid Demo */}
+        <section>
+          <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-6">
+            Validation Grid
+          </h3>
+          <ValidationGrid
+            rules={DEMO_VALIDATION_RULES}
+            title="Data Validation Results"
+            showCategories={true}
+            animated={true}
+            onRuleClick={(rule) => console.log('Rule clicked:', rule.name)}
+            onRevalidate={() => console.log('Revalidate requested')}
+          />
         </section>
 
         {/* Phase Demo Cards */}

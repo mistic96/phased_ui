@@ -1092,3 +1092,455 @@ body {
 .entity-max {
   color: rgba(255, 255, 255, 0.3);
 }
+
+/* ============================================
+   PROGRESS TIMELINE - Step Visualization
+   ============================================ */
+
+.progress-timeline {
+  position: relative;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  backdrop-filter: blur(8px);
+}
+
+/* Progress bar styling */
+.timeline-progress {
+  position: relative;
+}
+
+.timeline-progress > div:last-child {
+  position: relative;
+  overflow: hidden;
+}
+
+.timeline-progress > div:last-child::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Timeline container */
+.timeline-container {
+  padding: 16px 8px;
+}
+
+/* Step node styling */
+.timeline-step {
+  flex: 1;
+  min-width: 80px;
+}
+
+.timeline-node {
+  position: relative;
+  backdrop-filter: blur(4px);
+}
+
+.timeline-node::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.timeline-node:hover::before {
+  opacity: 1;
+}
+
+/* Active step glow */
+.timeline-step .timeline-node[class*="bg-blue"] {
+  box-shadow:
+    0 0 20px rgba(59, 130, 246, 0.4),
+    0 0 40px rgba(59, 130, 246, 0.2),
+    inset 0 0 15px rgba(59, 130, 246, 0.1);
+}
+
+/* Completed step glow */
+.timeline-step .timeline-node[class*="bg-emerald"] {
+  box-shadow:
+    0 0 15px rgba(16, 185, 129, 0.3),
+    inset 0 0 10px rgba(16, 185, 129, 0.1);
+}
+
+/* Error step glow */
+.timeline-step .timeline-node[class*="bg-red"] {
+  box-shadow:
+    0 0 15px rgba(239, 68, 68, 0.4),
+    inset 0 0 10px rgba(239, 68, 68, 0.1);
+  animation: errorPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes errorPulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+  50% { box-shadow: 0 0 25px rgba(239, 68, 68, 0.6), 0 0 40px rgba(239, 68, 68, 0.2); }
+}
+
+/* Connector line styling */
+.timeline-connector,
+.timeline-connector-after {
+  transition: all 0.5s ease;
+}
+
+/* Active connector animation */
+.timeline-connector[class*="from-emerald"][class*="to-blue"] {
+  background-size: 200% 100%;
+  animation: flowingGradient 1.5s ease-in-out infinite;
+}
+
+@keyframes flowingGradient {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Label styling */
+.timeline-label {
+  max-width: 120px;
+}
+
+/* Vertical orientation adjustments */
+.timeline-container.flex-col .timeline-step {
+  min-height: 80px;
+}
+
+.timeline-container.flex-col .timeline-label {
+  max-width: none;
+}
+
+/* Metadata tooltip */
+.timeline-step [class*="animate-fadeIn"] {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .progress-timeline {
+    padding: 12px;
+  }
+
+  .timeline-container.flex-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+  }
+
+  .timeline-container.flex-row .timeline-step {
+    flex-direction: row;
+    min-width: auto;
+  }
+
+  .timeline-container.flex-row .timeline-label {
+    margin-left: 16px;
+    margin-top: 0;
+    text-align: left;
+  }
+
+  .timeline-container.flex-row .timeline-connector {
+    display: none;
+  }
+}
+
+/* ============================================
+   FIELD MAPPER - Drag & Drop Mapping
+   ============================================ */
+
+.field-mapper {
+  position: relative;
+}
+
+.field-mapper-container {
+  min-height: 300px;
+}
+
+/* Field card styling */
+.field-card {
+  user-select: none;
+}
+
+.field-card:hover .field-connector {
+  transform: translateY(-50%) scale(1.2);
+}
+
+/* Source field grab effect */
+.field-card[data-side="source"]:active {
+  transform: scale(0.98);
+  opacity: 0.8;
+}
+
+/* Target field drop zone */
+.field-card[data-side="target"] {
+  transition: all 0.2s ease;
+}
+
+/* Connected field glow */
+.field-card.connected {
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+}
+
+/* Connection line animations */
+.connection-line {
+  pointer-events: auto;
+}
+
+.connection-line path {
+  transition: stroke-width 0.2s ease, stroke 0.2s ease;
+}
+
+/* Field column styling */
+.field-column {
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.field-column::-webkit-scrollbar {
+  width: 4px;
+}
+
+.field-column::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.field-column::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.field-column::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Connection area */
+.connection-area {
+  min-height: 100%;
+}
+
+/* Drag state styling */
+.field-mapper.dragging .field-card[data-side="target"]:not(.connected) {
+  border-color: rgba(59, 130, 246, 0.3);
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.field-mapper.dragging .field-card[data-side="target"]:not(.connected):hover {
+  transform: scale(1.02);
+  border-color: rgba(59, 130, 246, 0.6);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+/* Auto-map pulse animation */
+@keyframes autoMapPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(139, 92, 246, 0);
+  }
+}
+
+.field-card.auto-suggested {
+  animation: autoMapPulse 2s ease-in-out infinite;
+}
+
+/* Type badge colors */
+.field-card .type-string { color: #34d399; background: rgba(52, 211, 153, 0.2); }
+.field-card .type-number { color: #60a5fa; background: rgba(96, 165, 250, 0.2); }
+.field-card .type-date { color: #a78bfa; background: rgba(167, 139, 250, 0.2); }
+.field-card .type-boolean { color: #fbbf24; background: rgba(251, 191, 36, 0.2); }
+.field-card .type-array { color: #22d3ee; background: rgba(34, 211, 238, 0.2); }
+.field-card .type-object { color: #f472b6; background: rgba(244, 114, 182, 0.2); }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .field-mapper-container {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .connection-area {
+    display: none;
+  }
+
+  .field-column {
+    max-height: 250px;
+  }
+}
+
+/* ============================================
+   VALIDATION GRID - Results Display
+   ============================================ */
+
+.validation-grid {
+  position: relative;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.04) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  backdrop-filter: blur(8px);
+}
+
+/* Stats card hover effects */
+.validation-stats button {
+  position: relative;
+  overflow: hidden;
+}
+
+.validation-stats button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.05) 100%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.validation-stats button:hover::before {
+  opacity: 1;
+}
+
+/* Validation row styling */
+.validation-row {
+  position: relative;
+}
+
+.validation-row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 3px;
+  height: 0;
+  background: currentColor;
+  border-radius: 2px;
+  transform: translateY(-50%);
+  transition: height 0.2s ease;
+}
+
+.validation-row:hover::before {
+  height: 60%;
+}
+
+/* Status-specific row indicators */
+.validation-row:has([class*="text-emerald"])::before {
+  background: #10b981;
+}
+
+.validation-row:has([class*="text-amber"])::before {
+  background: #f59e0b;
+}
+
+.validation-row:has([class*="text-red"])::before {
+  background: #ef4444;
+}
+
+.validation-row:has([class*="text-blue"])::before {
+  background: #3b82f6;
+}
+
+/* Pass rate bar shimmer */
+.validation-grid .h-2 {
+  position: relative;
+  overflow: hidden;
+}
+
+.validation-grid .h-2 > div::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  animation: shimmer 2s infinite;
+}
+
+/* Expanded details animation */
+.validation-row .animate-fadeIn {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Category header styling */
+.validation-rules > div > .text-xs.uppercase {
+  position: relative;
+  padding-left: 12px;
+}
+
+.validation-rules > div > .text-xs.uppercase::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+/* Severity badge pulse for critical */
+.validation-row span[class*="bg-red"] {
+  animation: severityPulse 2s ease-in-out infinite;
+}
+
+@keyframes severityPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Filter button active state glow */
+.validation-stats button[class*="bg-emerald"] {
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+}
+
+.validation-stats button[class*="bg-amber"] {
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+}
+
+.validation-stats button[class*="bg-red"] {
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+}
+
+.validation-stats button[class*="bg-blue"] {
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .validation-grid {
+    padding: 12px;
+  }
+
+  .validation-stats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .validation-stats button:nth-child(4),
+  .validation-stats button:nth-child(5) {
+    grid-column: span 1;
+  }
+}
