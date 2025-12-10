@@ -19,6 +19,74 @@ import { ProgressTimeline, createWorkflowSteps, type TimelineStep } from './comp
 import { FieldMapper, type FieldMapping, type Field } from './components/FieldMapper';
 import { ValidationGrid, type ValidationRule } from './components/ValidationGrid';
 import { ChatInterface, type ChatMessage } from './components/ChatInterface';
+import { ActivityMap, type ProcessingStage, type DataFlow } from './components/ActivityMap';
+
+// Sample stages for Activity Map demo
+const DEMO_STAGES: ProcessingStage[] = [
+  {
+    id: 'ingest',
+    name: 'Ingest',
+    status: 'completed',
+    recordsProcessed: 15420,
+    recordsTotal: 15420,
+    throughput: 2500,
+    telemetry: {
+      avgLatency: 12,
+      cpuUsage: 45,
+      logs: ['Batch 1 loaded: 5000 records', 'Batch 2 loaded: 5000 records', 'Batch 3 loaded: 5420 records'],
+    },
+  },
+  {
+    id: 'validate',
+    name: 'Validate',
+    status: 'completed',
+    recordsProcessed: 15420,
+    recordsTotal: 15420,
+    errorCount: 3,
+    telemetry: {
+      avgLatency: 28,
+      cpuUsage: 62,
+      logs: ['Schema validation passed', '3 records failed format check', 'Quarantined invalid records'],
+    },
+  },
+  {
+    id: 'transform',
+    name: 'Transform',
+    status: 'active',
+    progress: 67,
+    recordsProcessed: 10328,
+    recordsTotal: 15417,
+    throughput: 1850,
+    telemetry: {
+      avgLatency: 45,
+      cpuUsage: 78,
+      logs: ['Applying field mappings...', 'Date format conversion in progress', 'Currency normalization active'],
+    },
+  },
+  {
+    id: 'enrich',
+    name: 'Enrich',
+    status: 'waiting',
+    telemetry: {
+      logs: ['Waiting for transform stage...'],
+    },
+  },
+  {
+    id: 'load',
+    name: 'Load',
+    status: 'idle',
+    telemetry: {
+      logs: ['Standing by...'],
+    },
+  },
+];
+
+const DEMO_FLOWS: DataFlow[] = [
+  { from: 'ingest', to: 'validate', active: false },
+  { from: 'validate', to: 'transform', active: true, particleCount: 4 },
+  { from: 'transform', to: 'enrich', active: false },
+  { from: 'enrich', to: 'load', active: false },
+];
 
 // Sample validation rules for demo
 const DEMO_VALIDATION_RULES: ValidationRule[] = [
@@ -617,6 +685,23 @@ function AppContent() {
           </div>
           <p className="text-xs text-white/40 mt-3 max-w-2xl">
             Intent-first conversational interface. Type a message to see simulated AI responses with confidence scores and processing metadata.
+          </p>
+        </section>
+
+        {/* Activity Map Demo */}
+        <section>
+          <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-6">
+            Activity Map
+          </h3>
+          <ActivityMap
+            stages={DEMO_STAGES}
+            flows={DEMO_FLOWS}
+            showTelemetry={true}
+            animated={true}
+            onStageClick={(stage) => console.log('Stage clicked:', stage.name)}
+          />
+          <p className="text-xs text-white/40 mt-3">
+            Watch data flow through processing stages. Click any stage to view detailed telemetry in forensic mode.
           </p>
         </section>
 

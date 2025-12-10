@@ -1672,3 +1672,129 @@ body {
     padding: 12px;
   }
 }
+
+/* ============================================
+   ACTIVITY MAP - Data Flow Visualization
+   ============================================ */
+
+.activity-map {
+  position: relative;
+}
+
+.activity-map-canvas {
+  position: relative;
+  background: radial-gradient(ellipse at center, rgba(59, 130, 246, 0.03) 0%, transparent 70%);
+}
+
+/* Stage node styling */
+.stage-node {
+  z-index: 10;
+}
+
+.stage-node:hover {
+  z-index: 20;
+}
+
+/* Flow line base */
+.flow-line {
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Flow particle animation */
+@keyframes flowParticle {
+  0% {
+    left: 0;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    left: calc(100% - 8px);
+    opacity: 0;
+  }
+}
+
+.flow-particle {
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+}
+
+/* Telemetry panel slide-in */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slideIn {
+  animation: slideIn 0.3s ease-out;
+}
+
+.telemetry-panel {
+  z-index: 30;
+  backdrop-filter: blur(12px);
+}
+
+.telemetry-panel::-webkit-scrollbar {
+  width: 4px;
+}
+
+.telemetry-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.telemetry-panel::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+/* Stage glow effects */
+.stage-node [class*="border-blue"] {
+  animation: blueGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes blueGlow {
+  from {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+  to {
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+  }
+}
+
+/* Grid background pattern */
+.activity-map-canvas::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .activity-map-canvas {
+    height: 400px !important;
+  }
+
+  .telemetry-panel {
+    width: 100%;
+    height: 50%;
+    top: auto;
+    bottom: 0;
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
