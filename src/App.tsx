@@ -20,6 +20,7 @@ import { FieldMapper, type FieldMapping, type Field } from './components/FieldMa
 import { ValidationGrid, type ValidationRule } from './components/ValidationGrid';
 import { ChatInterface, type ChatMessage } from './components/ChatInterface';
 import { ActivityMap, type ProcessingStage, type DataFlow } from './components/ActivityMap';
+import { FeedbackProvider, AuditTrail, useFeedback } from './components/FeedbackSystem';
 
 // Sample stages for Activity Map demo
 const DEMO_STAGES: ProcessingStage[] = [
@@ -705,6 +706,19 @@ function AppContent() {
           </p>
         </section>
 
+        {/* Feedback System Demo */}
+        <section>
+          <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-6">
+            Feedback System
+          </h3>
+          <div className="max-w-md">
+            <FeedbackDemo />
+          </div>
+          <p className="text-xs text-white/40 mt-3 max-w-md">
+            Subtle audit trail with 3-tone audio feedback. Click buttons to trigger notifications with sounds.
+          </p>
+        </section>
+
         {/* Phase Demo Cards */}
         <section>
           <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-6">
@@ -771,10 +785,69 @@ function AppContent() {
   );
 }
 
+// Feedback System Demo Component
+function FeedbackDemo() {
+  const { notify } = useFeedback();
+
+  const demoMessages = {
+    acknowledge: [
+      'File uploaded successfully',
+      'Mapping saved',
+      'Validation complete',
+      'Record processed',
+    ],
+    attention: [
+      'Review required: 3 fields need mapping',
+      'Waiting for user confirmation',
+      'New data available for processing',
+    ],
+    error: [
+      'Failed to connect to database',
+      'Invalid date format in row 42',
+      'Schema validation failed',
+    ],
+  };
+
+  const triggerDemo = (type: 'acknowledge' | 'attention' | 'error') => {
+    const messages = demoMessages[type];
+    const message = messages[Math.floor(Math.random() * messages.length)];
+    notify(type, message);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => triggerDemo('acknowledge')}
+          className="px-3 py-2 text-xs font-medium rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition-all"
+        >
+          Acknowledge
+        </button>
+        <button
+          onClick={() => triggerDemo('attention')}
+          className="px-3 py-2 text-xs font-medium rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 transition-all"
+        >
+          Attention
+        </button>
+        <button
+          onClick={() => triggerDemo('error')}
+          className="px-3 py-2 text-xs font-medium rounded-lg bg-red-500/20 text-red-300 border border-red-500/30 hover:bg-red-500/30 transition-all"
+        >
+          Error
+        </button>
+        <span className="text-xs text-white/30 ml-2">← Click to test sounds & audit</span>
+      </div>
+      <AuditTrail maxVisible={5} />
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <OrchestratorProvider>
-      <AppContent />
+      <FeedbackProvider audioEnabledByDefault={true}>
+        <AppContent />
+      </FeedbackProvider>
     </OrchestratorProvider>
   );
 }

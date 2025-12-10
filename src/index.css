@@ -1798,3 +1798,99 @@ body {
     border-top: 1px solid rgba(255, 255, 255, 0.1);
   }
 }
+
+/* ============================================
+   FEEDBACK SYSTEM - Audit Trail & Audio
+   ============================================ */
+
+.audit-trail {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.04) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+/* Entry slide-in animation */
+@keyframes slideInRight {
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.3s ease-out;
+}
+
+/* Entry hover effect */
+.audit-entry {
+  position: relative;
+}
+
+.audit-entry::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 0;
+  border-radius: 1px;
+  transition: height 0.2s ease;
+}
+
+.audit-entry:hover::before {
+  height: 60%;
+}
+
+.audit-entry[class*="border-emerald"]::before {
+  background: #10b981;
+}
+
+.audit-entry[class*="border-amber"]::before {
+  background: #f59e0b;
+}
+
+.audit-entry[class*="border-red"]::before {
+  background: #ef4444;
+}
+
+/* Subtle glow on new entry */
+.audit-entry.animate-slideInRight {
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+}
+
+/* Audio toggle pulse when enabled */
+.audit-trail button[title="Mute sounds"] {
+  animation: subtlePulse 3s ease-in-out infinite;
+}
+
+@keyframes subtlePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Compact scrollbar for expanded view */
+.audit-trail .space-y-1\.5 {
+  max-height: 300px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.audit-trail .space-y-1\.5::-webkit-scrollbar {
+  width: 4px;
+}
+
+.audit-trail .space-y-1\.5::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.audit-trail .space-y-1\.5::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
