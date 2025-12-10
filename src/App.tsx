@@ -308,6 +308,7 @@ function AppContent() {
     status: 'idle',
     message: 'Ready',
   });
+  const [selectedEntityIds, setSelectedEntityIds] = useState<string[]>([]);
 
   const handleStatusChange = useCallback((status: SystemStatus) => {
     setStatusState({
@@ -383,9 +384,11 @@ function AppContent() {
           </h3>
           <EntitySelector
             entities={DEMO_ENTITIES}
+            selectedIds={selectedEntityIds}
             placeholder="Search clients, partners, vendors..."
             maxSelections={5}
             onChange={(ids) => {
+              setSelectedEntityIds(ids);
               console.log('Selected:', ids);
               if (ids.length > 0) {
                 handleStatusChange('listening');
