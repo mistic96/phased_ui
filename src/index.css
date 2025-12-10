@@ -1385,3 +1385,162 @@ body {
     max-height: 250px;
   }
 }
+
+/* ============================================
+   VALIDATION GRID - Results Display
+   ============================================ */
+
+.validation-grid {
+  position: relative;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.04) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  backdrop-filter: blur(8px);
+}
+
+/* Stats card hover effects */
+.validation-stats button {
+  position: relative;
+  overflow: hidden;
+}
+
+.validation-stats button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.05) 100%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.validation-stats button:hover::before {
+  opacity: 1;
+}
+
+/* Validation row styling */
+.validation-row {
+  position: relative;
+}
+
+.validation-row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 3px;
+  height: 0;
+  background: currentColor;
+  border-radius: 2px;
+  transform: translateY(-50%);
+  transition: height 0.2s ease;
+}
+
+.validation-row:hover::before {
+  height: 60%;
+}
+
+/* Status-specific row indicators */
+.validation-row:has([class*="text-emerald"])::before {
+  background: #10b981;
+}
+
+.validation-row:has([class*="text-amber"])::before {
+  background: #f59e0b;
+}
+
+.validation-row:has([class*="text-red"])::before {
+  background: #ef4444;
+}
+
+.validation-row:has([class*="text-blue"])::before {
+  background: #3b82f6;
+}
+
+/* Pass rate bar shimmer */
+.validation-grid .h-2 {
+  position: relative;
+  overflow: hidden;
+}
+
+.validation-grid .h-2 > div::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  animation: shimmer 2s infinite;
+}
+
+/* Expanded details animation */
+.validation-row .animate-fadeIn {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Category header styling */
+.validation-rules > div > .text-xs.uppercase {
+  position: relative;
+  padding-left: 12px;
+}
+
+.validation-rules > div > .text-xs.uppercase::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+/* Severity badge pulse for critical */
+.validation-row span[class*="bg-red"] {
+  animation: severityPulse 2s ease-in-out infinite;
+}
+
+@keyframes severityPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Filter button active state glow */
+.validation-stats button[class*="bg-emerald"] {
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+}
+
+.validation-stats button[class*="bg-amber"] {
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+}
+
+.validation-stats button[class*="bg-red"] {
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+}
+
+.validation-stats button[class*="bg-blue"] {
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .validation-grid {
+    padding: 12px;
+  }
+
+  .validation-stats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .validation-stats button:nth-child(4),
+  .validation-stats button:nth-child(5) {
+    grid-column: span 1;
+  }
+}

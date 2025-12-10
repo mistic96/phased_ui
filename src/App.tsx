@@ -17,6 +17,21 @@ import { Dropzone } from './components/Dropzone';
 import { EntitySelector } from './components/EntitySelector';
 import { ProgressTimeline, createWorkflowSteps, type TimelineStep } from './components/ProgressTimeline';
 import { FieldMapper, type FieldMapping, type Field } from './components/FieldMapper';
+import { ValidationGrid, type ValidationRule } from './components/ValidationGrid';
+
+// Sample validation rules for demo
+const DEMO_VALIDATION_RULES: ValidationRule[] = [
+  { id: 'v1', name: 'Required Fields Present', category: 'Schema', status: 'pass', message: 'All required fields are present in the dataset' },
+  { id: 'v2', name: 'Email Format', category: 'Format', status: 'pass', message: 'All email addresses match expected format' },
+  { id: 'v3', name: 'Date Range Check', category: 'Business Rules', status: 'warn', message: '15 records have dates in the future', affectedRows: 15, severity: 'minor', details: 'Records with future dates:\n- Row 45: 2025-03-15\n- Row 128: 2025-06-22\n- Row 203: 2025-01-30\n... and 12 more' },
+  { id: 'v4', name: 'Duplicate Detection', category: 'Data Quality', status: 'fail', message: '3 duplicate customer records found', affectedRows: 3, severity: 'major', details: 'Duplicate entries detected:\n- customer_id: 1042 (appears 2x)\n- customer_id: 3891 (appears 3x)' },
+  { id: 'v5', name: 'Numeric Range', category: 'Business Rules', status: 'pass', message: 'All amounts within acceptable range' },
+  { id: 'v6', name: 'Foreign Key Integrity', category: 'Schema', status: 'pass', message: 'All foreign key references are valid' },
+  { id: 'v7', name: 'Null Value Check', category: 'Data Quality', status: 'warn', message: '8 optional fields contain null values', affectedRows: 8, severity: 'minor' },
+  { id: 'v8', name: 'Character Encoding', category: 'Format', status: 'pass', message: 'All text fields use valid UTF-8 encoding' },
+  { id: 'v9', name: 'PII Detection', category: 'Security', status: 'fail', message: 'Potential SSN patterns detected', affectedRows: 2, severity: 'critical', details: 'Warning: Possible PII detected in free-text fields.\nReview rows 892 and 1204 for Social Security Number patterns.' },
+  { id: 'v10', name: 'Business Logic', category: 'Business Rules', status: 'pending', message: 'Awaiting external validation service' },
+];
 
 // Sample fields for Field Mapper demo
 const SOURCE_FIELDS: Field[] = [
@@ -515,6 +530,21 @@ function AppContent() {
           <p className="text-xs text-white/40 mt-3">
             Drag from source fields to target fields to create mappings. Click "Auto-Map" to see AI-suggested mappings with confidence scores.
           </p>
+        </section>
+
+        {/* Validation Grid Demo */}
+        <section>
+          <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-6">
+            Validation Grid
+          </h3>
+          <ValidationGrid
+            rules={DEMO_VALIDATION_RULES}
+            title="Data Validation Results"
+            showCategories={true}
+            animated={true}
+            onRuleClick={(rule) => console.log('Rule clicked:', rule.name)}
+            onRevalidate={() => console.log('Revalidate requested')}
+          />
         </section>
 
         {/* Phase Demo Cards */}
