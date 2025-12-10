@@ -1554,3 +1554,343 @@ body {
     grid-column: span 1;
   }
 }
+
+/* ============================================
+   CHAT INTERFACE - Conversational UI
+   ============================================ */
+
+.chat-interface {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.04) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* Messages area */
+.chat-messages {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.chat-messages::-webkit-scrollbar {
+  width: 4px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+/* Message bubbles */
+.chat-bubble {
+  word-break: break-word;
+}
+
+.chat-bubble::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* User message specific styling */
+.chat-message:has(.bg-blue-500\/20) .chat-bubble {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.1);
+}
+
+/* Assistant message glow on hover */
+.chat-bubble:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Typing indicator animation */
+.typing-indicator span {
+  animation-duration: 0.6s;
+}
+
+/* System message styling */
+.chat-message-system div {
+  backdrop-filter: blur(4px);
+}
+
+/* Input area styling */
+.chat-input-area {
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(8px);
+}
+
+.chat-input-area textarea {
+  min-height: 48px;
+  max-height: 120px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.chat-input-area textarea::-webkit-scrollbar {
+  width: 4px;
+}
+
+.chat-input-area textarea::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+/* Send button pulse when ready */
+.chat-input-area button:not(:disabled):hover {
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+}
+
+/* Message entrance animation */
+.chat-message {
+  animation: messageSlide 0.3s ease-out;
+}
+
+@keyframes messageSlide {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .chat-bubble {
+    max-width: 90% !important;
+  }
+
+  .chat-input-area {
+    padding: 12px;
+  }
+}
+
+/* ============================================
+   ACTIVITY MAP - Data Flow Visualization
+   ============================================ */
+
+.activity-map {
+  position: relative;
+}
+
+.activity-map-canvas {
+  position: relative;
+  background: radial-gradient(ellipse at center, rgba(59, 130, 246, 0.03) 0%, transparent 70%);
+}
+
+/* Stage node styling */
+.stage-node {
+  z-index: 10;
+}
+
+.stage-node:hover {
+  z-index: 20;
+}
+
+/* Flow line base */
+.flow-line {
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Flow particle animation */
+@keyframes flowParticle {
+  0% {
+    left: 0;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    left: calc(100% - 8px);
+    opacity: 0;
+  }
+}
+
+.flow-particle {
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+}
+
+/* Telemetry panel slide-in */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slideIn {
+  animation: slideIn 0.3s ease-out;
+}
+
+.telemetry-panel {
+  z-index: 30;
+  backdrop-filter: blur(12px);
+}
+
+.telemetry-panel::-webkit-scrollbar {
+  width: 4px;
+}
+
+.telemetry-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.telemetry-panel::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+/* Stage glow effects */
+.stage-node [class*="border-blue"] {
+  animation: blueGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes blueGlow {
+  from {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+  to {
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+  }
+}
+
+/* Grid background pattern */
+.activity-map-canvas::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .activity-map-canvas {
+    height: 400px !important;
+  }
+
+  .telemetry-panel {
+    width: 100%;
+    height: 50%;
+    top: auto;
+    bottom: 0;
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* ============================================
+   FEEDBACK SYSTEM - Audit Trail & Audio
+   ============================================ */
+
+.audit-trail {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.04) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+/* Entry slide-in animation */
+@keyframes slideInRight {
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.3s ease-out;
+}
+
+/* Entry hover effect */
+.audit-entry {
+  position: relative;
+}
+
+.audit-entry::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 0;
+  border-radius: 1px;
+  transition: height 0.2s ease;
+}
+
+.audit-entry:hover::before {
+  height: 60%;
+}
+
+.audit-entry[class*="border-emerald"]::before {
+  background: #10b981;
+}
+
+.audit-entry[class*="border-amber"]::before {
+  background: #f59e0b;
+}
+
+.audit-entry[class*="border-red"]::before {
+  background: #ef4444;
+}
+
+/* Subtle glow on new entry */
+.audit-entry.animate-slideInRight {
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+}
+
+/* Audio toggle pulse when enabled */
+.audit-trail button[title="Mute sounds"] {
+  animation: subtlePulse 3s ease-in-out infinite;
+}
+
+@keyframes subtlePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Compact scrollbar for expanded view */
+.audit-trail .space-y-1\.5 {
+  max-height: 300px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.audit-trail .space-y-1\.5::-webkit-scrollbar {
+  width: 4px;
+}
+
+.audit-trail .space-y-1\.5::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.audit-trail .space-y-1\.5::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}

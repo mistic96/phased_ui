@@ -18,6 +18,76 @@ import { EntitySelector } from './components/EntitySelector';
 import { ProgressTimeline, createWorkflowSteps, type TimelineStep } from './components/ProgressTimeline';
 import { FieldMapper, type FieldMapping, type Field } from './components/FieldMapper';
 import { ValidationGrid, type ValidationRule } from './components/ValidationGrid';
+import { ChatInterface, type ChatMessage } from './components/ChatInterface';
+import { ActivityMap, type ProcessingStage, type DataFlow } from './components/ActivityMap';
+import { FeedbackProvider, AuditTrail, useFeedback } from './components/FeedbackSystem';
+
+// Sample stages for Activity Map demo
+const DEMO_STAGES: ProcessingStage[] = [
+  {
+    id: 'ingest',
+    name: 'Ingest',
+    status: 'completed',
+    recordsProcessed: 15420,
+    recordsTotal: 15420,
+    throughput: 2500,
+    telemetry: {
+      avgLatency: 12,
+      cpuUsage: 45,
+      logs: ['Batch 1 loaded: 5000 records', 'Batch 2 loaded: 5000 records', 'Batch 3 loaded: 5420 records'],
+    },
+  },
+  {
+    id: 'validate',
+    name: 'Validate',
+    status: 'completed',
+    recordsProcessed: 15420,
+    recordsTotal: 15420,
+    errorCount: 3,
+    telemetry: {
+      avgLatency: 28,
+      cpuUsage: 62,
+      logs: ['Schema validation passed', '3 records failed format check', 'Quarantined invalid records'],
+    },
+  },
+  {
+    id: 'transform',
+    name: 'Transform',
+    status: 'active',
+    progress: 67,
+    recordsProcessed: 10328,
+    recordsTotal: 15417,
+    throughput: 1850,
+    telemetry: {
+      avgLatency: 45,
+      cpuUsage: 78,
+      logs: ['Applying field mappings...', 'Date format conversion in progress', 'Currency normalization active'],
+    },
+  },
+  {
+    id: 'enrich',
+    name: 'Enrich',
+    status: 'waiting',
+    telemetry: {
+      logs: ['Waiting for transform stage...'],
+    },
+  },
+  {
+    id: 'load',
+    name: 'Load',
+    status: 'idle',
+    telemetry: {
+      logs: ['Standing by...'],
+    },
+  },
+];
+
+const DEMO_FLOWS: DataFlow[] = [
+  { from: 'ingest', to: 'validate', active: false },
+  { from: 'validate', to: 'transform', active: true, particleCount: 4 },
+  { from: 'transform', to: 'enrich', active: false },
+  { from: 'enrich', to: 'load', active: false },
+];
 
 // Sample validation rules for demo
 const DEMO_VALIDATION_RULES: ValidationRule[] = [
@@ -388,6 +458,58 @@ function AppContent() {
     ]);
   }, []);
 
+  // Chat state
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+    {
+      id: '1',
+      role: 'system',
+      content: 'Data transformation session started',
+      timestamp: new Date(Date.now() - 60000),
+    },
+    {
+      id: '2',
+      role: 'assistant',
+      content: 'Hello! I can help you transform and validate your data. What would you like to do?',
+      timestamp: new Date(Date.now() - 55000),
+      metadata: { confidence: 0.98, processingTime: 245 },
+    },
+  ]);
+  const [isChatTyping, setIsChatTyping] = useState(false);
+
+  const handleSendMessage = useCallback((content: string) => {
+    const userMessage: ChatMessage = {
+      id: `msg-${Date.now()}`,
+      role: 'user',
+      content,
+      timestamp: new Date(),
+      status: 'sent',
+    };
+    setChatMessages(prev => [...prev, userMessage]);
+
+    // Simulate AI response
+    setIsChatTyping(true);
+    setTimeout(() => {
+      const responses = [
+        "I'll analyze that for you. Based on the current data, I can see several patterns emerging.",
+        "Great question! Let me process that request and get back to you with the results.",
+        "I understand. I'm running the validation now and will update the status shortly.",
+        "Processing your request... The field mapping looks correct, but I'd suggest reviewing the date formats.",
+      ];
+      const assistantMessage: ChatMessage = {
+        id: `msg-${Date.now() + 1}`,
+        role: 'assistant',
+        content: responses[Math.floor(Math.random() * responses.length)],
+        timestamp: new Date(),
+        metadata: {
+          confidence: 0.85 + Math.random() * 0.14,
+          processingTime: 200 + Math.floor(Math.random() * 300),
+        },
+      };
+      setChatMessages(prev => [...prev, assistantMessage]);
+      setIsChatTyping(false);
+    }, 1500 + Math.random() * 1000);
+  }, []);
+
   const handleStatusChange = useCallback((status: SystemStatus) => {
     setStatusState({
       status,
@@ -547,6 +669,56 @@ function AppContent() {
           />
         </section>
 
+        {/* Chat Interface Demo */}
+        <section>
+          <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-6">
+            Chat Interface
+          </h3>
+          <div className="max-w-2xl h-[500px]">
+            <ChatInterface
+              messages={chatMessages}
+              onSendMessage={handleSendMessage}
+              isTyping={isChatTyping}
+              placeholder="Ask about your data transformation..."
+              showTimestamps={true}
+              showMetadata={true}
+            />
+          </div>
+          <p className="text-xs text-white/40 mt-3 max-w-2xl">
+            Intent-first conversational interface. Type a message to see simulated AI responses with confidence scores and processing metadata.
+          </p>
+        </section>
+
+        {/* Activity Map Demo */}
+        <section>
+          <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-6">
+            Activity Map
+          </h3>
+          <ActivityMap
+            stages={DEMO_STAGES}
+            flows={DEMO_FLOWS}
+            showTelemetry={true}
+            animated={true}
+            onStageClick={(stage) => console.log('Stage clicked:', stage.name)}
+          />
+          <p className="text-xs text-white/40 mt-3">
+            Watch data flow through processing stages. Click any stage to view detailed telemetry in forensic mode.
+          </p>
+        </section>
+
+        {/* Feedback System Demo */}
+        <section>
+          <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-6">
+            Feedback System
+          </h3>
+          <div className="max-w-md">
+            <FeedbackDemo />
+          </div>
+          <p className="text-xs text-white/40 mt-3 max-w-md">
+            Subtle audit trail with 3-tone audio feedback. Click buttons to trigger notifications with sounds.
+          </p>
+        </section>
+
         {/* Phase Demo Cards */}
         <section>
           <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-6">
@@ -613,10 +785,69 @@ function AppContent() {
   );
 }
 
+// Feedback System Demo Component
+function FeedbackDemo() {
+  const { notify } = useFeedback();
+
+  const demoMessages = {
+    acknowledge: [
+      'File uploaded successfully',
+      'Mapping saved',
+      'Validation complete',
+      'Record processed',
+    ],
+    attention: [
+      'Review required: 3 fields need mapping',
+      'Waiting for user confirmation',
+      'New data available for processing',
+    ],
+    error: [
+      'Failed to connect to database',
+      'Invalid date format in row 42',
+      'Schema validation failed',
+    ],
+  };
+
+  const triggerDemo = (type: 'acknowledge' | 'attention' | 'error') => {
+    const messages = demoMessages[type];
+    const message = messages[Math.floor(Math.random() * messages.length)];
+    notify(type, message);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => triggerDemo('acknowledge')}
+          className="px-3 py-2 text-xs font-medium rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition-all"
+        >
+          Acknowledge
+        </button>
+        <button
+          onClick={() => triggerDemo('attention')}
+          className="px-3 py-2 text-xs font-medium rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 transition-all"
+        >
+          Attention
+        </button>
+        <button
+          onClick={() => triggerDemo('error')}
+          className="px-3 py-2 text-xs font-medium rounded-lg bg-red-500/20 text-red-300 border border-red-500/30 hover:bg-red-500/30 transition-all"
+        >
+          Error
+        </button>
+        <span className="text-xs text-white/30 ml-2">← Click to test sounds & audit</span>
+      </div>
+      <AuditTrail maxVisible={5} />
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <OrchestratorProvider>
-      <AppContent />
+      <FeedbackProvider audioEnabledByDefault={true}>
+        <AppContent />
+      </FeedbackProvider>
     </OrchestratorProvider>
   );
 }
