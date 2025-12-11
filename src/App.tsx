@@ -18,7 +18,15 @@ import { EntitySelector } from './components/EntitySelector';
 import { ProgressTimeline, createWorkflowSteps, type TimelineStep } from './components/ProgressTimeline';
 import { FieldMapper, type FieldMapping, type Field } from './components/FieldMapper';
 import { ValidationGrid, type ValidationRule } from './components/ValidationGrid';
-import { ChatInterface, type ChatMessage } from './components/ChatInterface';
+import {
+  ChatInterface,
+  type ChatMessage,
+  type DetectedIntent,
+  type ActionPreview,
+  type InlineWidget,
+  type ActionStreamItem,
+  type PhaseContext,
+} from './components/ChatInterface';
 import { ActivityMap, type ProcessingStage, type DataFlow } from './components/ActivityMap';
 import { FeedbackProvider, AuditTrail, useFeedback } from './components/FeedbackSystem';
 
@@ -458,7 +466,7 @@ function AppContent() {
     ]);
   }, []);
 
-  // Chat state
+  // Chat state with forward-looking features
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     {
       id: '1',
@@ -473,8 +481,44 @@ function AppContent() {
       timestamp: new Date(Date.now() - 55000),
       metadata: { confidence: 0.98, processingTime: 245 },
     },
+    {
+      id: '3',
+      role: 'assistant',
+      content: '12 records have missing date values - want me to flag them for review?',
+      timestamp: new Date(Date.now() - 30000),
+      isProactiveNudge: true,
+    },
   ]);
   const [isChatTyping, setIsChatTyping] = useState(false);
+
+  // Action stream for real-time system actions
+  const [actionStream, setActionStream] = useState<ActionStreamItem[]>([
+    { id: 'a1', timestamp: new Date(Date.now() - 120000), action: 'Session initialized', status: 'completed' },
+    { id: 'a2', timestamp: new Date(Date.now() - 60000), action: 'Data file loaded', status: 'completed', detail: '15,420 records' },
+    { id: 'a3', timestamp: new Date(Date.now() - 30000), action: 'Schema detected', status: 'completed', detail: '12 fields' },
+  ]);
+
+  // Phase context for context bar
+  const phaseContext: PhaseContext = {
+    currentPhase: 'Field Mapping',
+    phaseProgress: 65,
+    dataLoaded: [
+      { name: 'Records', count: 15420 },
+      { name: 'Fields', count: 12 },
+    ],
+    pendingItems: ['3 unmapped fields', 'Date format review'],
+  };
+
+  // Smart suggestions based on current phase
+  const smartSuggestions = [
+    'Auto-map remaining fields',
+    'Show validation errors',
+    'Export mapped data',
+    'Review date formats',
+  ];
+
+  // Predictive text based on input
+  const [predictiveText, setPredictiveText] = useState<string | undefined>(undefined);
 
   const handleSendMessage = useCallback((content: string) => {
     const userMessage: ChatMessage = {
@@ -485,29 +529,170 @@ function AppContent() {
       status: 'sent',
     };
     setChatMessages(prev => [...prev, userMessage]);
+    setPredictiveText(undefined);
 
-    // Simulate AI response
+    // Add to action stream
+    setActionStream(prev => [...prev, {
+      id: `as-${Date.now()}`,
+      timestamp: new Date(),
+      action: 'Processing request',
+      status: 'running',
+      detail: content.slice(0, 30) + (content.length > 30 ? '...' : ''),
+    }]);
+
+    // Simulate AI response with forward-looking features
     setIsChatTyping(true);
     setTimeout(() => {
-      const responses = [
-        "I'll analyze that for you. Based on the current data, I can see several patterns emerging.",
-        "Great question! Let me process that request and get back to you with the results.",
-        "I understand. I'm running the validation now and will update the status shortly.",
-        "Processing your request... The field mapping looks correct, but I'd suggest reviewing the date formats.",
-      ];
-      const assistantMessage: ChatMessage = {
-        id: `msg-${Date.now() + 1}`,
-        role: 'assistant',
-        content: responses[Math.floor(Math.random() * responses.length)],
-        timestamp: new Date(),
-        metadata: {
-          confidence: 0.85 + Math.random() * 0.14,
-          processingTime: 200 + Math.floor(Math.random() * 300),
-        },
-      };
+      const lowerContent = content.toLowerCase();
+      let assistantMessage: ChatMessage;
+
+      // Respond with intent detection for mapping-related queries
+      if (lowerContent.includes('map') || lowerContent.includes('field')) {
+        assistantMessage = {
+          id: `msg-${Date.now() + 1}`,
+          role: 'assistant',
+          content: 'I understand you want to work with field mappings. Let me help:',
+          timestamp: new Date(),
+          metadata: { confidence: 0.92, processingTime: 340 },
+          detectedIntent: {
+            type: 'map_fields',
+            confidence: 0.92,
+            description: 'Map source fields to target schema fields',
+            suggestedAction: 'Open Field Mapper',
+            alternatives: [
+              { type: 'validate', description: 'Validate existing field mappings', confidence: 0.65 },
+              { type: 'export', description: 'Export current mapping configuration', confidence: 0.45 },
+            ],
+          },
+          thinking: [
+            { step: 'Intent analysis', detail: 'Detected field mapping intent from keywords', duration: 45 },
+            { step: 'Context check', detail: 'Current phase is Field Mapping - high relevance', duration: 23 },
+            { step: 'Action selection', detail: 'Recommending Field Mapper component', duration: 18 },
+          ],
+        };
+      }
+      // Respond with action preview for validation queries
+      else if (lowerContent.includes('valid') || lowerContent.includes('check')) {
+        assistantMessage = {
+          id: `msg-${Date.now() + 1}`,
+          role: 'assistant',
+          content: 'I can run validation on your data. Here\'s what will happen:',
+          timestamp: new Date(),
+          metadata: { confidence: 0.88, processingTime: 420 },
+          actionPreview: {
+            title: 'Run Data Validation',
+            changes: [
+              { type: 'add', target: 'ValidationReport', detail: 'Generate validation report' },
+              { type: 'modify', target: 'RecordStatus', detail: 'Update status for 15,420 records' },
+              { type: 'add', target: 'ErrorFlags', detail: 'Flag records with issues' },
+            ],
+            estimatedImpact: 'Will process 15,420 records • ~3 seconds',
+          },
+        };
+      }
+      // Respond with inline widget for selection queries
+      else if (lowerContent.includes('select') || lowerContent.includes('pick') || lowerContent.includes('choose')) {
+        assistantMessage = {
+          id: `msg-${Date.now() + 1}`,
+          role: 'assistant',
+          content: 'Which fields would you like to include in the export?',
+          timestamp: new Date(),
+          metadata: { confidence: 0.85, processingTime: 280 },
+          inlineWidget: {
+            type: 'field-picker',
+            data: {
+              fields: ['client_id', 'name', 'email', 'created_date', 'status', 'amount'],
+              selected: ['client_id', 'name', 'email'],
+            },
+          },
+        };
+      }
+      // Default response with thinking steps
+      else {
+        assistantMessage = {
+          id: `msg-${Date.now() + 1}`,
+          role: 'assistant',
+          content: 'I\'ve analyzed your request. Here\'s what I found:',
+          timestamp: new Date(),
+          metadata: { confidence: 0.85 + Math.random() * 0.14, processingTime: 200 + Math.floor(Math.random() * 300) },
+          thinking: [
+            { step: 'Query parsing', detail: 'Analyzed natural language input', duration: 32 },
+            { step: 'Context retrieval', detail: 'Loaded current session state', duration: 18 },
+            { step: 'Response generation', detail: 'Generated contextual response', duration: 156 },
+          ],
+          inlineWidget: {
+            type: 'validation-summary',
+            data: { passed: 15123, failed: 42, warnings: 255 },
+          },
+        };
+      }
+
       setChatMessages(prev => [...prev, assistantMessage]);
       setIsChatTyping(false);
+
+      // Update action stream
+      setActionStream(prev => prev.map(item =>
+        item.status === 'running' ? { ...item, status: 'completed' as const } : item
+      ));
     }, 1500 + Math.random() * 1000);
+  }, []);
+
+  // Intent handlers
+  const handleIntentConfirm = useCallback((intent: DetectedIntent) => {
+    console.log('Intent confirmed:', intent);
+    setActionStream(prev => [...prev, {
+      id: `as-${Date.now()}`,
+      timestamp: new Date(),
+      action: `Executing: ${intent.suggestedAction}`,
+      status: 'running',
+    }]);
+    // Simulate completing the action
+    setTimeout(() => {
+      setActionStream(prev => prev.map(item =>
+        item.status === 'running' ? { ...item, status: 'completed' as const } : item
+      ));
+    }, 2000);
+  }, []);
+
+  const handleIntentReject = useCallback((intent: DetectedIntent) => {
+    console.log('Intent rejected:', intent);
+    setChatMessages(prev => [...prev, {
+      id: `msg-${Date.now()}`,
+      role: 'assistant',
+      content: 'No problem! Can you tell me more about what you\'d like to do?',
+      timestamp: new Date(),
+      metadata: { confidence: 1.0, processingTime: 50 },
+    }]);
+  }, []);
+
+  const handleActionConfirm = useCallback((preview: ActionPreview) => {
+    console.log('Action confirmed:', preview);
+    setActionStream(prev => [...prev, {
+      id: `as-${Date.now()}`,
+      timestamp: new Date(),
+      action: preview.title,
+      status: 'running',
+    }]);
+    setTimeout(() => {
+      setActionStream(prev => prev.map(item =>
+        item.status === 'running' ? { ...item, status: 'completed' as const } : item
+      ));
+      setChatMessages(prev => [...prev, {
+        id: `msg-${Date.now()}`,
+        role: 'assistant',
+        content: `${preview.title} completed successfully.`,
+        timestamp: new Date(),
+        metadata: { confidence: 1.0, processingTime: 2340 },
+        inlineWidget: {
+          type: 'validation-summary',
+          data: { passed: 15378, failed: 12, warnings: 30 },
+        },
+      }]);
+    }, 2500);
+  }, []);
+
+  const handleWidgetInteraction = useCallback((widget: InlineWidget, action: string, data: unknown) => {
+    console.log('Widget interaction:', widget.type, action, data);
   }, []);
 
   const handleStatusChange = useCallback((status: SystemStatus) => {
@@ -672,20 +857,51 @@ function AppContent() {
         {/* Chat Interface Demo */}
         <section>
           <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-6">
-            Chat Interface
+            Chat Interface — Forward-Looking Features
           </h3>
-          <div className="max-w-2xl h-[500px]">
+          <div className="max-w-4xl h-[600px] rounded-xl border border-white/10 overflow-hidden">
             <ChatInterface
               messages={chatMessages}
               onSendMessage={handleSendMessage}
+              onIntentConfirm={handleIntentConfirm}
+              onIntentReject={handleIntentReject}
+              onActionConfirm={handleActionConfirm}
+              onWidgetInteraction={handleWidgetInteraction}
               isTyping={isChatTyping}
-              placeholder="Ask about your data transformation..."
+              placeholder="Try: 'map fields', 'validate data', or 'select fields'..."
               showTimestamps={true}
               showMetadata={true}
+              phaseContext={phaseContext}
+              actionStream={actionStream}
+              smartSuggestions={smartSuggestions}
+              predictiveText={predictiveText}
+              showActionStream={true}
             />
           </div>
-          <p className="text-xs text-white/40 mt-3 max-w-2xl">
-            Intent-first conversational interface. Type a message to see simulated AI responses with confidence scores and processing metadata.
+          <div className="mt-4 grid grid-cols-2 md:grid-cols-5 gap-3 max-w-4xl">
+            <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+              <div className="text-xs text-white/50 mb-1">Context Bar</div>
+              <div className="text-xs text-white/30">Phase + data state</div>
+            </div>
+            <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+              <div className="text-xs text-white/50 mb-1">Intent Cards</div>
+              <div className="text-xs text-white/30">Type "map fields"</div>
+            </div>
+            <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+              <div className="text-xs text-white/50 mb-1">Action Preview</div>
+              <div className="text-xs text-white/30">Type "validate"</div>
+            </div>
+            <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+              <div className="text-xs text-white/50 mb-1">Inline Widgets</div>
+              <div className="text-xs text-white/30">Type "select"</div>
+            </div>
+            <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+              <div className="text-xs text-white/50 mb-1">Action Stream</div>
+              <div className="text-xs text-white/30">Real-time panel</div>
+            </div>
+          </div>
+          <p className="text-xs text-white/40 mt-3 max-w-4xl">
+            Features: Context Bar • Intent Detection with Alternatives • Action Previews • Expandable Reasoning • Inline Widgets • Proactive Nudges • Smart Suggestions • Action Stream Panel
           </p>
         </section>
 
