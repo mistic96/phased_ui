@@ -76,11 +76,13 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({
     if (isOpen) {
       setIsVisible(true);
       requestAnimationFrame(() => {
-        setIsAnimating(true);
+        requestAnimationFrame(() => {
+          setIsAnimating(true);
+        });
       });
     } else {
       setIsAnimating(false);
-      const timer = setTimeout(() => setIsVisible(false), 300);
+      const timer = setTimeout(() => setIsVisible(false), 500);
       return () => clearTimeout(timer);
     }
   }, [isOpen]);
