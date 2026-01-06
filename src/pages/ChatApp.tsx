@@ -22,7 +22,7 @@ import { ValidationGrid, type ValidationRule } from '../components/ValidationGri
 import { ActivityMap, type ProcessingStage, type DataFlow } from '../components/ActivityMap';
 import { StatusIndicator } from '../components/StatusIndicator';
 import { type StatusState } from '../phased/types';
-import { FeedbackProvider, AuditTrail, useFeedback } from '../components/FeedbackSystem';
+import { FeedbackProvider, useFeedback } from '../components/FeedbackSystem';
 
 // =============================================================================
 // DEMO DATA
@@ -423,7 +423,7 @@ function ChatAppContent() {
           phaseContext={phaseContext}
           actionStream={actionStream}
           smartSuggestions={smartSuggestions}
-          showActionStream={true}
+          showActionStream={false}
           className="h-full"
         />
       </main>
@@ -435,11 +435,6 @@ function ChatAppContent() {
           compact={true}
           accept=".csv,.xlsx,.json"
         />
-      </div>
-
-      {/* Audit Trail Toggle */}
-      <div className="fixed bottom-24 left-8 z-40">
-        <AuditTrail maxVisible={5} />
       </div>
 
       {/* Slide Panels */}
