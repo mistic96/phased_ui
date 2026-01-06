@@ -112,8 +112,8 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({
       {showOverlay && (
         <div
           className={`
-            absolute inset-0 bg-black/60 backdrop-blur-sm
-            transition-opacity duration-300
+            absolute inset-0 bg-white/5 backdrop-blur-md
+            transition-opacity duration-500 ease-out
             ${isAnimating ? 'opacity-100' : 'opacity-0'}
           `}
           onClick={closeOnOverlayClick ? onClose : undefined}
@@ -129,7 +129,7 @@ export const SlidePanel: React.FC<SlidePanelProps> = ({
           ${position === 'left' ? 'border-r' : ''}
           ${position === 'bottom' ? 'border-t' : ''}
           shadow-2xl
-          transform transition-transform duration-300 ease-out
+          transform transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
           ${isAnimating ? posClasses.open : posClasses.closed}
           flex flex-col
         `}
