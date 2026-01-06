@@ -423,7 +423,7 @@ function ChatAppContent() {
           phaseContext={phaseContext}
           actionStream={actionStream}
           smartSuggestions={smartSuggestions}
-          showActionStream={false}
+          showActionStream={true}
           className="h-full"
         />
       </main>
