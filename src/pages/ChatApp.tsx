@@ -1,6 +1,10 @@
 /**
  * ChatApp - Full-screen chat-centric interface
  * The main application page with intent-driven overlays
+ *
+ * Now with Phased Framework integration:
+ * - OrchestratorProvider for global phase management
+ * - PhasedSlidePanel for lifecycle-aware overlays
  */
 
 import { useState, useCallback } from 'react';
@@ -15,13 +19,14 @@ import {
   type PhaseContext,
 } from '../components/ChatInterface';
 import { ProgressTimeline, type TimelineStep } from '../components/ProgressTimeline';
-import { SlidePanel } from '../components/SlidePanel';
+import { PhasedSlidePanel } from '../components/PhasedSlidePanel';
 import { InlineDropzone } from '../components/InlineDropzone';
 import { FieldMapper, type FieldMapping, type Field } from '../components/FieldMapper';
 import { ValidationGrid, type ValidationRule } from '../components/ValidationGrid';
 import { ActivityMap, type ProcessingStage, type DataFlow } from '../components/ActivityMap';
 import { StatusIndicator } from '../components/StatusIndicator';
-import { type StatusState } from '../phased/types';
+import { type StatusState, type Phase } from '../phased/types';
+import { OrchestratorProvider } from '../phased/OrchestratorContext';
 import { FeedbackProvider, useFeedback } from '../components/FeedbackSystem';
 
 // =============================================================================
@@ -379,6 +384,29 @@ function ChatAppContent() {
     }
   }, [notify]);
 
+  // Handle panel phase transitions (Phased Framework lifecycle)
+  const handlePanelPhaseChange = useCallback((panelId: string, phase: Phase) => {
+    // Log phase transitions to action stream for visibility
+    if (phase === 'surfaced') {
+      setActionStream(prev => [...prev, {
+        id: `as-phase-${Date.now()}`,
+        timestamp: new Date(),
+        action: `${panelId} panel surfaced`,
+        status: 'completed',
+      }]);
+    } else if (phase === 'focused') {
+      // Play subtle audio feedback when panel receives focus
+      notify('acknowledge', 'Panel focused');
+    } else if (phase === 'dissolving') {
+      setActionStream(prev => [...prev, {
+        id: `as-phase-${Date.now()}`,
+        timestamp: new Date(),
+        action: `${panelId} panel closing`,
+        status: 'completed',
+      }]);
+    }
+  }, [notify]);
+
   return (
     <div className="chat-app h-screen flex flex-col bg-slate-950">
       {/* Header with Progress Timeline */}
@@ -437,13 +465,14 @@ function ChatAppContent() {
         />
       </div>
 
-      {/* Slide Panels */}
-      <SlidePanel
+      {/* Phased Slide Panels - with lifecycle awareness */}
+      <PhasedSlidePanel
         isOpen={activePanel === 'field-mapper'}
         onClose={() => setActivePanel(null)}
         title="Field Mapper"
         size="xl"
         position="right"
+        onPhaseChange={(phase) => handlePanelPhaseChange('field-mapper', phase)}
       >
         <div className="p-6">
           <FieldMapper
@@ -453,14 +482,15 @@ function ChatAppContent() {
             onMappingsChange={handleMappingChange}
           />
         </div>
-      </SlidePanel>
+      </PhasedSlidePanel>
 
-      <SlidePanel
+      <PhasedSlidePanel
         isOpen={activePanel === 'validation'}
         onClose={() => setActivePanel(null)}
         title="Validation Results"
         size="xl"
         position="right"
+        onPhaseChange={(phase) => handlePanelPhaseChange('validation', phase)}
       >
         <div className="p-6">
           <ValidationGrid
@@ -469,14 +499,15 @@ function ChatAppContent() {
             onRevalidate={() => notify('acknowledge', 'Revalidating...')}
           />
         </div>
-      </SlidePanel>
+      </PhasedSlidePanel>
 
-      <SlidePanel
+      <PhasedSlidePanel
         isOpen={activePanel === 'activity'}
         onClose={() => setActivePanel(null)}
         title="Activity Map"
         size="xl"
         position="right"
+        onPhaseChange={(phase) => handlePanelPhaseChange('activity', phase)}
       >
         <div className="p-6">
           <ActivityMap
@@ -487,16 +518,26 @@ function ChatAppContent() {
             onStageClick={(stage) => console.log('Stage:', stage.name)}
           />
         </div>
-      </SlidePanel>
+      </PhasedSlidePanel>
     </div>
   );
 }
 
-// Wrap with FeedbackProvider
+// Wrap with OrchestratorProvider and FeedbackProvider
+// OrchestratorProvider: Global phase state management (Phased Framework)
+// FeedbackProvider: Audio/haptic feedback system
 export default function ChatApp() {
   return (
-    <FeedbackProvider>
-      <ChatAppContent />
-    </FeedbackProvider>
+    <OrchestratorProvider
+      initialContext={{
+        role: 'analyst',
+        urgency: 'normal',
+        device: 'desktop',
+      }}
+    >
+      <FeedbackProvider>
+        <ChatAppContent />
+      </FeedbackProvider>
+    </OrchestratorProvider>
   );
 }
